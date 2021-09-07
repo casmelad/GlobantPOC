@@ -20,12 +20,6 @@ func NewUserService() *UsersService {
 
 }
 
-/* GetUserById(context.Context, *UserId) (*User, error)
-Create(context.Context, *User) (*TaskResult, error)
-GetAllUsers(context.Context, *Void) (*UserCollection, error)
-Update(context.Context, *User) (*TaskResult, error)
-Delete(context.Context, *UserId) (*TaskResult, error) */
-
 func (u *UsersService) GetUserById(c context.Context, uid *UserId) (*User, error) {
 
 	fmt.Println("entra")

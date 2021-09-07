@@ -2,7 +2,6 @@ package web
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	users "github.com/casmelad/GlobantPOC/cmd/REST_server/application"
@@ -17,16 +16,14 @@ func (u *usersController) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	response := []entities.User{}
 
-	fmt.Println("GetAll")
+	resp, err := u.dataSource.GetAll()
 
-	if resp, err := u.dataSource.GetAll(); err != nil {
+	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
-	} else {
-
-		fmt.Println("GetAll")
-		response = resp
 	}
+
+	response = resp
 
 	respondWithJSON(w, http.StatusOK, response)
 
@@ -35,7 +32,7 @@ func (u *usersController) GetAll(w http.ResponseWriter, r *http.Request) {
 func (u *usersController) GetById(r http.ResponseWriter, w *http.Request) {
 	user := entities.User{}
 	user.Name = "Adrian"
-	r.Write([]byte("jejejej"))
+	r.Write([]byte("Not implemented"))
 }
 
 func (u *usersController) Create(w http.ResponseWriter, r *http.Request) {
@@ -57,15 +54,11 @@ func (u *usersController) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *usersController) Update(r http.ResponseWriter, w *http.Request) {
-	user := entities.User{}
-	user.Name = "Adrian"
-	r.Write([]byte("jejejej"))
+	r.Write([]byte("Not implemented"))
 }
 
 func (u *usersController) Delete(r http.ResponseWriter, w *http.Request) {
-	user := entities.User{}
-	user.Name = "Adrian"
-	r.Write([]byte("jejejej"))
+	r.Write([]byte("Not implemented"))
 }
 
 func NewUserController() *usersController {

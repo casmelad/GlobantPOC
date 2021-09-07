@@ -15,6 +15,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Mal %v", err)
 	}
+
 	server := grpc.NewServer()
 
 	uservice.RegisterUsersServer(server, uservice.NewUserService())
