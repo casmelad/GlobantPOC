@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package users;
+
+option go_package="./users";
+
+message User{
+    int32 Id =1;
+    string Name =2;
+    string LastName =3;
+}
+
+message UserCollection{
+    repeated User users =1;
+}
+
+message Void{}
+
+message UserId{
+    int32 Id = 1;
+}
+
+message TaskResult{
+    int32 Code=1;
+}
+
+service Users{
+    rpc GetUserById(UserId) returns (User){}
+
+    rpc Create(User) returns (TaskResult){}
+
+    rpc GetAllUsers(Void) returns (UserCollection){}
+
+    rpc Update(User) returns (TaskResult){}
+
+    rpc Delete(UserId) returns (TaskResult){}
+}
+
