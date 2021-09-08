@@ -10,10 +10,11 @@ import (
 )
 
 func main() {
+
 	ls, err := net.Listen("tcp", fmt.Sprintf(":%d", 9000))
 
 	if err != nil {
-		log.Fatalf("Mal %v", err)
+		log.Fatalf("Could not create the listener %v", err)
 	}
 
 	server := grpc.NewServer()
@@ -24,6 +25,5 @@ func main() {
 		log.Fatalf("failed to serve: %s", err)
 	}
 
-	log.Println("All good")
-
+	fmt.Println("Server is up!")
 }

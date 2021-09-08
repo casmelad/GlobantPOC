@@ -3,6 +3,9 @@ package web
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
+
+	"github.com/gorilla/mux"
 
 	users "github.com/casmelad/GlobantPOC/cmd/REST_server/application"
 	entities "github.com/casmelad/GlobantPOC/cmd/REST_server/entities"
@@ -14,8 +17,6 @@ type usersController struct {
 
 func (u *usersController) GetAll(w http.ResponseWriter, r *http.Request) {
 
-	response := []entities.User{}
-
 	resp, err := u.dataSource.GetAll()
 
 	if err != nil {
@@ -23,26 +24,44 @@ func (u *usersController) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response = resp
+	response := resp
 
 	respondWithJSON(w, http.StatusOK, response)
 
 }
 
-func (u *usersController) GetById(r http.ResponseWriter, w *http.Request) {
-	user := entities.User{}
-	user.Name = "Adrian"
-	r.Write([]byte("Not implemented"))
+func (u *usersController) GetById(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+
+	email, ok := vars["email"]
+
+	if !ok {
+		respondWithError(w, http.StatusBadRequest, "invalida input data")
+		return
+	}
+
+	user, err := u.dataSource.GetByEmail(email)
+
+	if err != nil {
+		respondWithError(w, http.StatusNotFound, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, user)
 }
 
 func (u *usersController) Create(w http.ResponseWriter, r *http.Request) {
 
 	userToCreate := entities.User{}
+
 	decoder := json.NewDecoder(r.Body)
+
 	if err := decoder.Decode(&userToCreate); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
+
 	defer r.Body.Close()
 
 	if _, err := u.dataSource.Create(userToCreate); err != nil {
@@ -53,12 +72,64 @@ func (u *usersController) Create(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusCreated, userToCreate)
 }
 
-func (u *usersController) Update(r http.ResponseWriter, w *http.Request) {
-	r.Write([]byte("Not implemented"))
+func (u *usersController) Update(w http.ResponseWriter, r *http.Request) {
+
+	userToUpdate := entities.User{}
+
+	decoder := json.NewDecoder(r.Body)
+
+	if err := decoder.Decode(&userToUpdate); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	vars := mux.Vars(r)
+
+	email, ok := vars["email"]
+
+	if !ok {
+		respondWithError(w, http.StatusBadRequest, "invalida input data")
+		return
+	}
+
+	userToUpdate.EMail = email
+
+	defer r.Body.Close()
+
+	if _, err := u.dataSource.Update(userToUpdate); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusNoContent, userToUpdate)
 }
 
-func (u *usersController) Delete(r http.ResponseWriter, w *http.Request) {
-	r.Write([]byte("Not implemented"))
+func (u *usersController) Delete(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+
+	id, ok := vars["userId"]
+
+	if !ok {
+		respondWithError(w, http.StatusBadRequest, "invalida input data")
+		return
+	}
+
+	intId, res := strconv.Atoi(id)
+
+	if res != nil {
+		respondWithError(w, http.StatusBadRequest, "invalida input data")
+		return
+	}
+
+	user, err := u.dataSource.Delete(int(intId))
+
+	if err != nil {
+		respondWithError(w, http.StatusNotFound, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusNoContent, user)
 }
 
 func NewUserController() *usersController {
