@@ -4,11 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sync"
 )
 
 type UsersService struct {
-	mtx  sync.RWMutex
 	repo map[string]User
 }
 
@@ -20,49 +18,31 @@ func NewUserService() *UsersService {
 
 }
 
-/* GetUserById(context.Context, *UserId) (*User, error)
-Create(context.Context, *User) (*TaskResult, error)
-GetAllUsers(context.Context, *Void) (*UserCollection, error)
-Update(context.Context, *User) (*TaskResult, error)
-Delete(context.Context, *UserId) (*TaskResult, error) */
+func (u *UsersService) GetUser(c context.Context, uid *UserEmail) (*User, error) {
 
-func (u *UsersService) GetUserById(c context.Context, uid *UserId) (*User, error) {
-
-	fmt.Println("entra")
-
-	if uid.Id <= 0 {
-		fmt.Println("Invalid user Id")
-		return nil, errors.New("Invalid user Id")
-	}
-
-	if user, ok := u.repo[""]; ok {
+	if user, ok := u.repo[uid.EMail]; ok {
 		return &user, nil
 	}
 
-	return &User{}, nil
+	return &User{}, errors.New("user not found")
 }
 
 func (u *UsersService) Create(ctx context.Context, user *User) (*TaskResult, error) {
 
-	u.mtx.Lock()
-	defer u.mtx.Unlock()
-
 	if user == nil {
-		fmt.Println("entra crea es nil")
+		return &TaskResult{HasBody: true, Result: 0, Code: TaskResult_InvalidInput}, nil
 	}
 
 	user.Id = int32(len(u.repo)) + 1
 
-	if _, ok := u.repo[user.Name]; !ok {
-		fmt.Println(" no existe ")
-		u.repo[user.Name] = User{Id: user.Id, Name: user.Name, LastName: user.LastName}
-	} else {
-		fmt.Println("existe")
+	_, ok := u.repo[user.EMail]
+
+	if !ok {
+		u.repo[user.EMail] = User{Id: user.Id, EMail: user.EMail, Name: user.Name, LastName: user.LastName}
+		return &TaskResult{HasBody: true, Result: user.Id, Code: TaskResult_Ok}, nil
 	}
 
-	fmt.Println(u.repo)
-
-	return &TaskResult{Code: 1}, nil
+	return &TaskResult{HasBody: true, Result: 0, Code: TaskResult_Failed}, nil
 
 }
 func (u *UsersService) GetAllUsers(ctx context.Context, v *Void) (*UserCollection, error) {
@@ -86,8 +66,49 @@ func (u *UsersService) GetAllUsers(ctx context.Context, v *Void) (*UserCollectio
 }
 
 func (u *UsersService) Update(ctx context.Context, user *User) (*TaskResult, error) {
-	return nil, nil
+
+	if user == nil {
+		return &TaskResult{Code: TaskResult_InvalidInput}, errors.New("invalid data")
+	}
+
+	userToUpdate, err := u.GetUser(ctx, &UserEmail{EMail: user.EMail})
+
+	fmt.Println(err)
+
+	if err != nil {
+		return &TaskResult{Code: TaskResult_Failed}, err
+	}
+
+	userToUpdate.Name = user.Name
+	userToUpdate.LastName = user.LastName
+
+	u.repo[user.EMail] = *userToUpdate
+
+	return &TaskResult{Code: TaskResult_Ok}, nil
 }
-func (u *UsersService) Delete(ctx context.Context, user *UserId) (*TaskResult, error) {
-	return nil, nil
+
+func (u *UsersService) Delete(ctx context.Context, userId *UserId) (*TaskResult, error) {
+
+	ch := make(chan User)
+
+	go func() {
+		for _, userFromRepo := range u.repo {
+			if userFromRepo.Id == userId.Id {
+				ch <- userFromRepo
+			}
+		}
+		ch <- User{}
+	}()
+
+	user := <-ch
+
+	userToRemove, err := u.GetUser(ctx, &UserEmail{EMail: user.EMail})
+
+	if err != nil && userToRemove.Id == 0 {
+		return &TaskResult{Code: TaskResult_Failed}, err
+	}
+
+	delete(u.repo, userToRemove.EMail)
+
+	return &TaskResult{Code: TaskResult_Ok}, nil
 }

@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.27.1
 // 	protoc        v3.17.3
-// source: datasource.proto
+// source: user_service_grpc.proto
 
 package users
 
@@ -24,20 +24,73 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type TaskResult_CodeResult int32
+
+const (
+	TaskResult_Unknow       TaskResult_CodeResult = 0
+	TaskResult_Ok           TaskResult_CodeResult = 1
+	TaskResult_Failed       TaskResult_CodeResult = 2
+	TaskResult_InvalidInput TaskResult_CodeResult = 3
+)
+
+// Enum value maps for TaskResult_CodeResult.
+var (
+	TaskResult_CodeResult_name = map[int32]string{
+		0: "Unknow",
+		1: "Ok",
+		2: "Failed",
+		3: "InvalidInput",
+	}
+	TaskResult_CodeResult_value = map[string]int32{
+		"Unknow":       0,
+		"Ok":           1,
+		"Failed":       2,
+		"InvalidInput": 3,
+	}
+)
+
+func (x TaskResult_CodeResult) Enum() *TaskResult_CodeResult {
+	p := new(TaskResult_CodeResult)
+	*p = x
+	return p
+}
+
+func (x TaskResult_CodeResult) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (TaskResult_CodeResult) Descriptor() protoreflect.EnumDescriptor {
+	return file_user_service_grpc_proto_enumTypes[0].Descriptor()
+}
+
+func (TaskResult_CodeResult) Type() protoreflect.EnumType {
+	return &file_user_service_grpc_proto_enumTypes[0]
+}
+
+func (x TaskResult_CodeResult) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use TaskResult_CodeResult.Descriptor instead.
+func (TaskResult_CodeResult) EnumDescriptor() ([]byte, []int) {
+	return file_user_service_grpc_proto_rawDescGZIP(), []int{5, 0}
+}
+
 type User struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
 	Id       int32  `protobuf:"varint,1,opt,name=Id,proto3" json:"Id,omitempty"`
-	Name     string `protobuf:"bytes,2,opt,name=Name,proto3" json:"Name,omitempty"`
-	LastName string `protobuf:"bytes,3,opt,name=LastName,proto3" json:"LastName,omitempty"`
+	EMail    string `protobuf:"bytes,2,opt,name=EMail,proto3" json:"EMail,omitempty"`
+	Name     string `protobuf:"bytes,3,opt,name=Name,proto3" json:"Name,omitempty"`
+	LastName string `protobuf:"bytes,4,opt,name=LastName,proto3" json:"LastName,omitempty"`
 }
 
 func (x *User) Reset() {
 	*x = User{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_datasource_proto_msgTypes[0]
+		mi := &file_user_service_grpc_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -50,7 +103,7 @@ func (x *User) String() string {
 func (*User) ProtoMessage() {}
 
 func (x *User) ProtoReflect() protoreflect.Message {
-	mi := &file_datasource_proto_msgTypes[0]
+	mi := &file_user_service_grpc_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -63,7 +116,7 @@ func (x *User) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use User.ProtoReflect.Descriptor instead.
 func (*User) Descriptor() ([]byte, []int) {
-	return file_datasource_proto_rawDescGZIP(), []int{0}
+	return file_user_service_grpc_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *User) GetId() int32 {
@@ -71,6 +124,13 @@ func (x *User) GetId() int32 {
 		return x.Id
 	}
 	return 0
+}
+
+func (x *User) GetEMail() string {
+	if x != nil {
+		return x.EMail
+	}
+	return ""
 }
 
 func (x *User) GetName() string {
@@ -98,7 +158,7 @@ type UserCollection struct {
 func (x *UserCollection) Reset() {
 	*x = UserCollection{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_datasource_proto_msgTypes[1]
+		mi := &file_user_service_grpc_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -111,7 +171,7 @@ func (x *UserCollection) String() string {
 func (*UserCollection) ProtoMessage() {}
 
 func (x *UserCollection) ProtoReflect() protoreflect.Message {
-	mi := &file_datasource_proto_msgTypes[1]
+	mi := &file_user_service_grpc_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -124,7 +184,7 @@ func (x *UserCollection) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserCollection.ProtoReflect.Descriptor instead.
 func (*UserCollection) Descriptor() ([]byte, []int) {
-	return file_datasource_proto_rawDescGZIP(), []int{1}
+	return file_user_service_grpc_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *UserCollection) GetUsers() []*User {
@@ -143,7 +203,7 @@ type Void struct {
 func (x *Void) Reset() {
 	*x = Void{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_datasource_proto_msgTypes[2]
+		mi := &file_user_service_grpc_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -156,7 +216,7 @@ func (x *Void) String() string {
 func (*Void) ProtoMessage() {}
 
 func (x *Void) ProtoReflect() protoreflect.Message {
-	mi := &file_datasource_proto_msgTypes[2]
+	mi := &file_user_service_grpc_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -169,7 +229,7 @@ func (x *Void) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Void.ProtoReflect.Descriptor instead.
 func (*Void) Descriptor() ([]byte, []int) {
-	return file_datasource_proto_rawDescGZIP(), []int{2}
+	return file_user_service_grpc_proto_rawDescGZIP(), []int{2}
 }
 
 type UserId struct {
@@ -183,7 +243,7 @@ type UserId struct {
 func (x *UserId) Reset() {
 	*x = UserId{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_datasource_proto_msgTypes[3]
+		mi := &file_user_service_grpc_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -196,7 +256,7 @@ func (x *UserId) String() string {
 func (*UserId) ProtoMessage() {}
 
 func (x *UserId) ProtoReflect() protoreflect.Message {
-	mi := &file_datasource_proto_msgTypes[3]
+	mi := &file_user_service_grpc_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -209,7 +269,7 @@ func (x *UserId) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserId.ProtoReflect.Descriptor instead.
 func (*UserId) Descriptor() ([]byte, []int) {
-	return file_datasource_proto_rawDescGZIP(), []int{3}
+	return file_user_service_grpc_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *UserId) GetId() int32 {
@@ -219,18 +279,67 @@ func (x *UserId) GetId() int32 {
 	return 0
 }
 
+type UserEmail struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	EMail string `protobuf:"bytes,1,opt,name=EMail,proto3" json:"EMail,omitempty"`
+}
+
+func (x *UserEmail) Reset() {
+	*x = UserEmail{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_user_service_grpc_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UserEmail) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserEmail) ProtoMessage() {}
+
+func (x *UserEmail) ProtoReflect() protoreflect.Message {
+	mi := &file_user_service_grpc_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserEmail.ProtoReflect.Descriptor instead.
+func (*UserEmail) Descriptor() ([]byte, []int) {
+	return file_user_service_grpc_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *UserEmail) GetEMail() string {
+	if x != nil {
+		return x.EMail
+	}
+	return ""
+}
+
 type TaskResult struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Code int32 `protobuf:"varint,1,opt,name=Code,proto3" json:"Code,omitempty"`
+	Code    TaskResult_CodeResult `protobuf:"varint,1,opt,name=Code,proto3,enum=users.TaskResult_CodeResult" json:"Code,omitempty"`
+	HasBody bool                  `protobuf:"varint,2,opt,name=HasBody,proto3" json:"HasBody,omitempty"`
+	Result  int32                 `protobuf:"varint,3,opt,name=Result,proto3" json:"Result,omitempty"`
 }
 
 func (x *TaskResult) Reset() {
 	*x = TaskResult{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_datasource_proto_msgTypes[4]
+		mi := &file_user_service_grpc_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -243,7 +352,7 @@ func (x *TaskResult) String() string {
 func (*TaskResult) ProtoMessage() {}
 
 func (x *TaskResult) ProtoReflect() protoreflect.Message {
-	mi := &file_datasource_proto_msgTypes[4]
+	mi := &file_user_service_grpc_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -256,36 +365,63 @@ func (x *TaskResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TaskResult.ProtoReflect.Descriptor instead.
 func (*TaskResult) Descriptor() ([]byte, []int) {
-	return file_datasource_proto_rawDescGZIP(), []int{4}
+	return file_user_service_grpc_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *TaskResult) GetCode() int32 {
+func (x *TaskResult) GetCode() TaskResult_CodeResult {
 	if x != nil {
 		return x.Code
+	}
+	return TaskResult_Unknow
+}
+
+func (x *TaskResult) GetHasBody() bool {
+	if x != nil {
+		return x.HasBody
+	}
+	return false
+}
+
+func (x *TaskResult) GetResult() int32 {
+	if x != nil {
+		return x.Result
 	}
 	return 0
 }
 
-var File_datasource_proto protoreflect.FileDescriptor
+var File_user_service_grpc_proto protoreflect.FileDescriptor
 
-var file_datasource_proto_rawDesc = []byte{
-	0x0a, 0x10, 0x64, 0x61, 0x74, 0x61, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x12, 0x05, 0x75, 0x73, 0x65, 0x72, 0x73, 0x22, 0x46, 0x0a, 0x04, 0x55, 0x73, 0x65,
-	0x72, 0x12, 0x0e, 0x0a, 0x02, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x02, 0x49,
-	0x64, 0x12, 0x12, 0x0a, 0x04, 0x4e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x04, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x4c, 0x61, 0x73, 0x74, 0x4e, 0x61, 0x6d,
-	0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x4c, 0x61, 0x73, 0x74, 0x4e, 0x61, 0x6d,
-	0x65, 0x22, 0x33, 0x0a, 0x0e, 0x55, 0x73, 0x65, 0x72, 0x43, 0x6f, 0x6c, 0x6c, 0x65, 0x63, 0x74,
-	0x69, 0x6f, 0x6e, 0x12, 0x21, 0x0a, 0x05, 0x75, 0x73, 0x65, 0x72, 0x73, 0x18, 0x01, 0x20, 0x03,
-	0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x73, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x52,
-	0x05, 0x75, 0x73, 0x65, 0x72, 0x73, 0x22, 0x06, 0x0a, 0x04, 0x56, 0x6f, 0x69, 0x64, 0x22, 0x18,
-	0x0a, 0x06, 0x55, 0x73, 0x65, 0x72, 0x49, 0x64, 0x12, 0x0e, 0x0a, 0x02, 0x49, 0x64, 0x18, 0x01,
-	0x20, 0x01, 0x28, 0x05, 0x52, 0x02, 0x49, 0x64, 0x22, 0x20, 0x0a, 0x0a, 0x54, 0x61, 0x73, 0x6b,
-	0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x43, 0x6f, 0x64, 0x65, 0x18, 0x01,
-	0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x43, 0x6f, 0x64, 0x65, 0x32, 0xef, 0x01, 0x0a, 0x05, 0x55,
-	0x73, 0x65, 0x72, 0x73, 0x12, 0x2b, 0x0a, 0x0b, 0x47, 0x65, 0x74, 0x55, 0x73, 0x65, 0x72, 0x42,
-	0x79, 0x49, 0x64, 0x12, 0x0d, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x73, 0x2e, 0x55, 0x73, 0x65, 0x72,
-	0x49, 0x64, 0x1a, 0x0b, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x73, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x22,
+var file_user_service_grpc_proto_rawDesc = []byte{
+	0x0a, 0x17, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x5f, 0x67,
+	0x72, 0x70, 0x63, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x05, 0x75, 0x73, 0x65, 0x72, 0x73,
+	0x22, 0x5c, 0x0a, 0x04, 0x55, 0x73, 0x65, 0x72, 0x12, 0x0e, 0x0a, 0x02, 0x49, 0x64, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x05, 0x52, 0x02, 0x49, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x45, 0x4d, 0x61, 0x69,
+	0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x45, 0x4d, 0x61, 0x69, 0x6c, 0x12, 0x12,
+	0x0a, 0x04, 0x4e, 0x61, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x4e, 0x61,
+	0x6d, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x4c, 0x61, 0x73, 0x74, 0x4e, 0x61, 0x6d, 0x65, 0x18, 0x04,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x4c, 0x61, 0x73, 0x74, 0x4e, 0x61, 0x6d, 0x65, 0x22, 0x33,
+	0x0a, 0x0e, 0x55, 0x73, 0x65, 0x72, 0x43, 0x6f, 0x6c, 0x6c, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e,
+	0x12, 0x21, 0x0a, 0x05, 0x75, 0x73, 0x65, 0x72, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32,
+	0x0b, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x73, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x52, 0x05, 0x75, 0x73,
+	0x65, 0x72, 0x73, 0x22, 0x06, 0x0a, 0x04, 0x56, 0x6f, 0x69, 0x64, 0x22, 0x18, 0x0a, 0x06, 0x55,
+	0x73, 0x65, 0x72, 0x49, 0x64, 0x12, 0x0e, 0x0a, 0x02, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x05, 0x52, 0x02, 0x49, 0x64, 0x22, 0x21, 0x0a, 0x09, 0x55, 0x73, 0x65, 0x72, 0x45, 0x6d, 0x61,
+	0x69, 0x6c, 0x12, 0x14, 0x0a, 0x05, 0x45, 0x4d, 0x61, 0x69, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x05, 0x45, 0x4d, 0x61, 0x69, 0x6c, 0x22, 0xb0, 0x01, 0x0a, 0x0a, 0x54, 0x61, 0x73,
+	0x6b, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x12, 0x30, 0x0a, 0x04, 0x43, 0x6f, 0x64, 0x65, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x1c, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x73, 0x2e, 0x54, 0x61,
+	0x73, 0x6b, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x2e, 0x43, 0x6f, 0x64, 0x65, 0x52, 0x65, 0x73,
+	0x75, 0x6c, 0x74, 0x52, 0x04, 0x43, 0x6f, 0x64, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x48, 0x61, 0x73,
+	0x42, 0x6f, 0x64, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x07, 0x48, 0x61, 0x73, 0x42,
+	0x6f, 0x64, 0x79, 0x12, 0x16, 0x0a, 0x06, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x18, 0x03, 0x20,
+	0x01, 0x28, 0x05, 0x52, 0x06, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x22, 0x3e, 0x0a, 0x0a, 0x43,
+	0x6f, 0x64, 0x65, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x12, 0x0a, 0x0a, 0x06, 0x55, 0x6e, 0x6b,
+	0x6e, 0x6f, 0x77, 0x10, 0x00, 0x12, 0x06, 0x0a, 0x02, 0x4f, 0x6b, 0x10, 0x01, 0x12, 0x0a, 0x0a,
+	0x06, 0x46, 0x61, 0x69, 0x6c, 0x65, 0x64, 0x10, 0x02, 0x12, 0x10, 0x0a, 0x0c, 0x49, 0x6e, 0x76,
+	0x61, 0x6c, 0x69, 0x64, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x10, 0x03, 0x32, 0xee, 0x01, 0x0a, 0x05,
+	0x55, 0x73, 0x65, 0x72, 0x73, 0x12, 0x2a, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x55, 0x73, 0x65, 0x72,
+	0x12, 0x10, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x73, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x45, 0x6d, 0x61,
+	0x69, 0x6c, 0x1a, 0x0b, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x73, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x22,
 	0x00, 0x12, 0x2a, 0x0a, 0x06, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x12, 0x0b, 0x2e, 0x75, 0x73,
 	0x65, 0x72, 0x73, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x1a, 0x11, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x73,
 	0x2e, 0x54, 0x61, 0x73, 0x6b, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x22, 0x00, 0x12, 0x33, 0x0a,
@@ -302,51 +438,55 @@ var file_datasource_proto_rawDesc = []byte{
 }
 
 var (
-	file_datasource_proto_rawDescOnce sync.Once
-	file_datasource_proto_rawDescData = file_datasource_proto_rawDesc
+	file_user_service_grpc_proto_rawDescOnce sync.Once
+	file_user_service_grpc_proto_rawDescData = file_user_service_grpc_proto_rawDesc
 )
 
-func file_datasource_proto_rawDescGZIP() []byte {
-	file_datasource_proto_rawDescOnce.Do(func() {
-		file_datasource_proto_rawDescData = protoimpl.X.CompressGZIP(file_datasource_proto_rawDescData)
+func file_user_service_grpc_proto_rawDescGZIP() []byte {
+	file_user_service_grpc_proto_rawDescOnce.Do(func() {
+		file_user_service_grpc_proto_rawDescData = protoimpl.X.CompressGZIP(file_user_service_grpc_proto_rawDescData)
 	})
-	return file_datasource_proto_rawDescData
+	return file_user_service_grpc_proto_rawDescData
 }
 
-var file_datasource_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
-var file_datasource_proto_goTypes = []interface{}{
-	(*User)(nil),           // 0: users.User
-	(*UserCollection)(nil), // 1: users.UserCollection
-	(*Void)(nil),           // 2: users.Void
-	(*UserId)(nil),         // 3: users.UserId
-	(*TaskResult)(nil),     // 4: users.TaskResult
+var file_user_service_grpc_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_user_service_grpc_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_user_service_grpc_proto_goTypes = []interface{}{
+	(TaskResult_CodeResult)(0), // 0: users.TaskResult.CodeResult
+	(*User)(nil),               // 1: users.User
+	(*UserCollection)(nil),     // 2: users.UserCollection
+	(*Void)(nil),               // 3: users.Void
+	(*UserId)(nil),             // 4: users.UserId
+	(*UserEmail)(nil),          // 5: users.UserEmail
+	(*TaskResult)(nil),         // 6: users.TaskResult
 }
-var file_datasource_proto_depIdxs = []int32{
-	0, // 0: users.UserCollection.users:type_name -> users.User
-	3, // 1: users.Users.GetUserById:input_type -> users.UserId
-	0, // 2: users.Users.Create:input_type -> users.User
-	2, // 3: users.Users.GetAllUsers:input_type -> users.Void
-	0, // 4: users.Users.Update:input_type -> users.User
-	3, // 5: users.Users.Delete:input_type -> users.UserId
-	0, // 6: users.Users.GetUserById:output_type -> users.User
-	4, // 7: users.Users.Create:output_type -> users.TaskResult
-	1, // 8: users.Users.GetAllUsers:output_type -> users.UserCollection
-	4, // 9: users.Users.Update:output_type -> users.TaskResult
-	4, // 10: users.Users.Delete:output_type -> users.TaskResult
-	6, // [6:11] is the sub-list for method output_type
-	1, // [1:6] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+var file_user_service_grpc_proto_depIdxs = []int32{
+	1, // 0: users.UserCollection.users:type_name -> users.User
+	0, // 1: users.TaskResult.Code:type_name -> users.TaskResult.CodeResult
+	5, // 2: users.Users.GetUser:input_type -> users.UserEmail
+	1, // 3: users.Users.Create:input_type -> users.User
+	3, // 4: users.Users.GetAllUsers:input_type -> users.Void
+	1, // 5: users.Users.Update:input_type -> users.User
+	4, // 6: users.Users.Delete:input_type -> users.UserId
+	1, // 7: users.Users.GetUser:output_type -> users.User
+	6, // 8: users.Users.Create:output_type -> users.TaskResult
+	2, // 9: users.Users.GetAllUsers:output_type -> users.UserCollection
+	6, // 10: users.Users.Update:output_type -> users.TaskResult
+	6, // 11: users.Users.Delete:output_type -> users.TaskResult
+	7, // [7:12] is the sub-list for method output_type
+	2, // [2:7] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
-func init() { file_datasource_proto_init() }
-func file_datasource_proto_init() {
-	if File_datasource_proto != nil {
+func init() { file_user_service_grpc_proto_init() }
+func file_user_service_grpc_proto_init() {
+	if File_user_service_grpc_proto != nil {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_datasource_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_user_service_grpc_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*User); i {
 			case 0:
 				return &v.state
@@ -358,7 +498,7 @@ func file_datasource_proto_init() {
 				return nil
 			}
 		}
-		file_datasource_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+		file_user_service_grpc_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserCollection); i {
 			case 0:
 				return &v.state
@@ -370,7 +510,7 @@ func file_datasource_proto_init() {
 				return nil
 			}
 		}
-		file_datasource_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+		file_user_service_grpc_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Void); i {
 			case 0:
 				return &v.state
@@ -382,7 +522,7 @@ func file_datasource_proto_init() {
 				return nil
 			}
 		}
-		file_datasource_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+		file_user_service_grpc_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserId); i {
 			case 0:
 				return &v.state
@@ -394,7 +534,19 @@ func file_datasource_proto_init() {
 				return nil
 			}
 		}
-		file_datasource_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+		file_user_service_grpc_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UserEmail); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_user_service_grpc_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*TaskResult); i {
 			case 0:
 				return &v.state
@@ -411,20 +563,21 @@ func file_datasource_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_datasource_proto_rawDesc,
-			NumEnums:      0,
-			NumMessages:   5,
+			RawDescriptor: file_user_service_grpc_proto_rawDesc,
+			NumEnums:      1,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_datasource_proto_goTypes,
-		DependencyIndexes: file_datasource_proto_depIdxs,
-		MessageInfos:      file_datasource_proto_msgTypes,
+		GoTypes:           file_user_service_grpc_proto_goTypes,
+		DependencyIndexes: file_user_service_grpc_proto_depIdxs,
+		EnumInfos:         file_user_service_grpc_proto_enumTypes,
+		MessageInfos:      file_user_service_grpc_proto_msgTypes,
 	}.Build()
-	File_datasource_proto = out.File
-	file_datasource_proto_rawDesc = nil
-	file_datasource_proto_goTypes = nil
-	file_datasource_proto_depIdxs = nil
+	File_user_service_grpc_proto = out.File
+	file_user_service_grpc_proto_rawDesc = nil
+	file_user_service_grpc_proto_goTypes = nil
+	file_user_service_grpc_proto_depIdxs = nil
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -439,7 +592,7 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type UsersClient interface {
-	GetUserById(ctx context.Context, in *UserId, opts ...grpc.CallOption) (*User, error)
+	GetUser(ctx context.Context, in *UserEmail, opts ...grpc.CallOption) (*User, error)
 	Create(ctx context.Context, in *User, opts ...grpc.CallOption) (*TaskResult, error)
 	GetAllUsers(ctx context.Context, in *Void, opts ...grpc.CallOption) (*UserCollection, error)
 	Update(ctx context.Context, in *User, opts ...grpc.CallOption) (*TaskResult, error)
@@ -454,9 +607,9 @@ func NewUsersClient(cc grpc.ClientConnInterface) UsersClient {
 	return &usersClient{cc}
 }
 
-func (c *usersClient) GetUserById(ctx context.Context, in *UserId, opts ...grpc.CallOption) (*User, error) {
+func (c *usersClient) GetUser(ctx context.Context, in *UserEmail, opts ...grpc.CallOption) (*User, error) {
 	out := new(User)
-	err := c.cc.Invoke(ctx, "/users.Users/GetUserById", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/users.Users/GetUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -501,7 +654,7 @@ func (c *usersClient) Delete(ctx context.Context, in *UserId, opts ...grpc.CallO
 
 // UsersServer is the server API for Users service.
 type UsersServer interface {
-	GetUserById(context.Context, *UserId) (*User, error)
+	GetUser(context.Context, *UserEmail) (*User, error)
 	Create(context.Context, *User) (*TaskResult, error)
 	GetAllUsers(context.Context, *Void) (*UserCollection, error)
 	Update(context.Context, *User) (*TaskResult, error)
@@ -512,8 +665,8 @@ type UsersServer interface {
 type UnimplementedUsersServer struct {
 }
 
-func (*UnimplementedUsersServer) GetUserById(context.Context, *UserId) (*User, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetUserById not implemented")
+func (*UnimplementedUsersServer) GetUser(context.Context, *UserEmail) (*User, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
 func (*UnimplementedUsersServer) Create(context.Context, *User) (*TaskResult, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
@@ -532,20 +685,20 @@ func RegisterUsersServer(s *grpc.Server, srv UsersServer) {
 	s.RegisterService(&_Users_serviceDesc, srv)
 }
 
-func _Users_GetUserById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UserId)
+func _Users_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserEmail)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UsersServer).GetUserById(ctx, in)
+		return srv.(UsersServer).GetUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/users.Users/GetUserById",
+		FullMethod: "/users.Users/GetUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UsersServer).GetUserById(ctx, req.(*UserId))
+		return srv.(UsersServer).GetUser(ctx, req.(*UserEmail))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -627,8 +780,8 @@ var _Users_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*UsersServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetUserById",
-			Handler:    _Users_GetUserById_Handler,
+			MethodName: "GetUser",
+			Handler:    _Users_GetUser_Handler,
 		},
 		{
 			MethodName: "Create",
@@ -648,5 +801,5 @@ var _Users_serviceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "datasource.proto",
+	Metadata: "user_service_grpc.proto",
 }

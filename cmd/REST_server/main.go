@@ -10,15 +10,10 @@ import (
 )
 
 func main() {
+
 	router := mux.NewRouter()
 
-	usersController := web.NewUserController()
-
-	router.HandleFunc("/users", usersController.GetAll).Methods("GET")
-	router.HandleFunc("/users/{userId}", usersController.GetById).Methods("GET")
-	router.HandleFunc("/users", usersController.Create).Methods("POST")
-	router.HandleFunc("/users/{userId}", usersController.Update).Methods("PUT")
-	router.HandleFunc("/users/{userId}", usersController.Delete).Methods("DELETE")
+	web.Startup(router)
 
 	srv := &http.Server{
 		Handler: router,

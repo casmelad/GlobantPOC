@@ -6,8 +6,9 @@ option go_package="./users";
 
 message User{
     int32 Id =1;
-    string Name =2;
-    string LastName =3;
+    string EMail=2;
+    string Name =3;
+    string LastName =4;
 }
 
 message UserCollection{
@@ -20,12 +21,24 @@ message UserId{
     int32 Id = 1;
 }
 
+message UserEmail{
+ string EMail=1;
+}
+
 message TaskResult{
-    int32 Code=1;
+    enum CodeResult {
+        Unknow = 0;
+        Ok=1;
+        Failed = 2;
+        InvalidInput = 3;
+    }
+    CodeResult Code=1;
+    bool HasBody = 2;
+    int32 Result = 3;
 }
 
 service Users{
-    rpc GetUserById(UserId) returns (User){}
+    rpc GetUser(UserEmail) returns (User){}
 
     rpc Create(User) returns (TaskResult){}
 
