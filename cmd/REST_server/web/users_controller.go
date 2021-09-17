@@ -64,12 +64,14 @@ func (u *usersController) Create(w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
 
-	if _, err := u.dataSource.Create(userToCreate); err != nil {
+	userCreated, err := u.dataSource.Create(userToCreate)
+
+	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, userToCreate)
+	respondWithJSON(w, http.StatusCreated, userCreated)
 }
 
 func (u *usersController) Update(w http.ResponseWriter, r *http.Request) {
