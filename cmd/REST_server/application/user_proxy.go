@@ -20,21 +20,15 @@ func NewUserProxy() *UserProxy {
 
 func (up UserProxy) GetAll() ([]entities.User, error) {
 
-	conn, err := grpc.Dial(":9000", grpc.WithInsecure())
+	serverCon, err := OpenServerConection()
 
 	if err != nil {
 		log.Fatalf("did not connect to server: %s", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-
-	defer cancel()
-
-	defer conn.Close()
-
-	c := NewUsersClient(conn)
-
-	result, errorFromCall := c.GetAllUsers(ctx, &Void{})
+	defer serverCon.dispose()
+	c := serverCon.client
+	result, errorFromCall := c.GetAllUsers(serverCon.context, &Void{})
 
 	if errorFromCall != nil {
 		log.Fatalf("server call did not work: %s", err)
@@ -45,7 +39,7 @@ func (up UserProxy) GetAll() ([]entities.User, error) {
 	for _, o := range result.Users {
 		response = append(response, entities.User{
 			Id:       int(o.Id),
-			EMail:    o.EMail,
+			EMail:    o.Email,
 			Name:     o.Name,
 			LastName: o.LastName,
 		})
@@ -56,64 +50,53 @@ func (up UserProxy) GetAll() ([]entities.User, error) {
 
 func (up UserProxy) Create(u entities.User) (entities.User, error) {
 
-	conn, err := grpc.Dial(":9000", grpc.WithInsecure())
+	serverCon, err := OpenServerConection()
 
 	if err != nil {
 		log.Fatalf("did not connect to server: %s", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-
-	defer cancel()
-
-	defer conn.Close()
-
-	c := NewUsersClient(conn)
-
-	externalUser := &User{
+	defer serverCon.dispose()
+	c := serverCon.client
+	externalUser := &UserRequest{
 		Id:       0,
-		EMail:    u.EMail,
+		Email:    u.EMail,
 		Name:     u.Name,
 		LastName: u.LastName,
 	}
 
-	result, errorFromCall := c.Create(ctx, externalUser)
+	result, errorFromCall := c.Create(serverCon.context, externalUser)
 
-	if result.Code != TaskResult_Ok {
+	if result.Code != CreateUserResponse_OK {
 		return entities.User{}, errors.New("error al crear")
 	}
 
-	u.Id = int(result.Result)
+	fmt.Println(result.User)
 
+	u.Id = int(result.User.Id)
 	return u, errorFromCall
 }
 
 func (up UserProxy) Update(u entities.User) (entities.User, error) {
 
-	conn, err := grpc.Dial(":9000", grpc.WithInsecure())
+	serverCon, err := OpenServerConection()
 
 	if err != nil {
 		log.Fatalf("did not connect to server: %s", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-
-	defer cancel()
-
-	defer conn.Close()
-
-	c := NewUsersClient(conn)
-
-	externalUser := &User{
+	defer serverCon.dispose()
+	c := serverCon.client
+	externalUser := &UserRequest{
 		Id:       int32(u.Id),
-		EMail:    u.EMail,
+		Email:    u.EMail,
 		Name:     u.Name,
 		LastName: u.LastName,
 	}
 
-	result, errorFromCall := c.Update(ctx, externalUser)
+	result, errorFromCall := c.Update(serverCon.context, externalUser)
 
-	if result.Code != TaskResult_Ok || errorFromCall != nil {
+	if result.Code != UpdateUserResponse_OK || errorFromCall != nil {
 		return entities.User{}, errorFromCall
 	}
 
@@ -122,27 +105,20 @@ func (up UserProxy) Update(u entities.User) (entities.User, error) {
 
 func (up UserProxy) Delete(id int) (bool, error) {
 
-	conn, err := grpc.Dial(":9000", grpc.WithInsecure())
+	serverCon, err := OpenServerConection()
 
 	if err != nil {
 		log.Fatalf("did not connect to server: %s", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-
-	defer cancel()
-
-	defer conn.Close()
-
-	c := NewUsersClient(conn)
-
+	defer serverCon.dispose()
+	c := serverCon.client
 	externalUserId := &UserId{
 		Id: int32(id),
 	}
+	result, errorFromCall := c.Delete(serverCon.context, externalUserId)
 
-	result, errorFromCall := c.Delete(ctx, externalUserId)
-
-	if result.Code == TaskResult_Ok {
+	if result.Code == DeleteUserResponse_OK {
 		return true, nil
 	}
 
@@ -151,21 +127,15 @@ func (up UserProxy) Delete(id int) (bool, error) {
 
 func (up UserProxy) GetByEmail(email string) (entities.User, error) {
 
-	conn, err := grpc.Dial(":9000", grpc.WithInsecure())
+	serverCon, err := OpenServerConection()
 
 	if err != nil {
 		log.Fatalf("did not connect to server: %s", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-
-	defer cancel()
-
-	defer conn.Close()
-
-	c := NewUsersClient(conn)
-
-	userFromGrpc, errorFromCall := c.GetUser(ctx, &UserEmail{EMail: email})
+	defer serverCon.dispose()
+	c := serverCon.client
+	userFromGrpc, errorFromCall := c.GetUser(serverCon.context, &UserEmailRequest{EMail: email})
 
 	if errorFromCall != nil {
 		fmt.Println("server call did not work:", errorFromCall)
@@ -174,10 +144,37 @@ func (up UserProxy) GetByEmail(email string) (entities.User, error) {
 
 	response := entities.User{
 		Id:       int(userFromGrpc.Id),
-		EMail:    userFromGrpc.EMail,
+		EMail:    userFromGrpc.Email,
 		Name:     userFromGrpc.Name,
 		LastName: userFromGrpc.LastName,
 	}
 
 	return response, errorFromCall
+}
+
+func OpenServerConection() (*ServerConnection, error) {
+
+	conn, err := grpc.Dial(":9000", grpc.WithInsecure())
+
+	if err != nil {
+		log.Fatalf("did not connect to server: %s", err)
+		return nil, err //unreached?
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+	c := NewUsersClient(conn)
+
+	return &ServerConnection{client: c, context: ctx, dispose: func() {
+		cancel()
+		conn.Close()
+
+	}}, nil
+
+}
+
+type ServerConnection struct {
+	client  UsersClient
+	context context.Context
+	dispose func()
 }
