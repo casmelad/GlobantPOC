@@ -1,12 +1,12 @@
-package users
+package application
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"time"
 
+	grpcService "github.com/casmelad/GlobantPOC/cmd/REST_server/application/grpcservices"
 	entities "github.com/casmelad/GlobantPOC/cmd/REST_server/entities"
 	"google.golang.org/grpc"
 )
@@ -28,7 +28,7 @@ func (up UserProxy) GetAll() ([]entities.User, error) {
 
 	defer serverCon.dispose()
 	c := serverCon.client
-	result, errorFromCall := c.GetAllUsers(serverCon.context, &Void{})
+	result, errorFromCall := c.GetAllUsers(serverCon.context, &grpcService.Filters{})
 
 	if errorFromCall != nil {
 		log.Fatalf("server call did not work: %s", err)
@@ -39,7 +39,7 @@ func (up UserProxy) GetAll() ([]entities.User, error) {
 	for _, o := range result.Users {
 		response = append(response, entities.User{
 			Id:       int(o.Id),
-			EMail:    o.Email,
+			Email:    o.Email,
 			Name:     o.Name,
 			LastName: o.LastName,
 		})
@@ -58,22 +58,20 @@ func (up UserProxy) Create(u entities.User) (entities.User, error) {
 
 	defer serverCon.dispose()
 	c := serverCon.client
-	externalUser := &UserRequest{
+	externalUser := &grpcService.User{
 		Id:       0,
-		Email:    u.EMail,
+		Email:    u.Email,
 		Name:     u.Name,
 		LastName: u.LastName,
 	}
 
-	result, errorFromCall := c.Create(serverCon.context, externalUser)
+	result, errorFromCall := c.Create(serverCon.context, &grpcService.CreateUserRequest{User: externalUser})
 
-	if result.Code != CreateUserResponse_OK {
-		return entities.User{}, errors.New("error al crear")
+	if errorFromCall != nil {
+		return entities.User{}, errorFromCall
 	}
 
-	fmt.Println(result.User)
-
-	u.Id = int(result.User.Id)
+	u.Id = int(result.UserId)
 	return u, errorFromCall
 }
 
@@ -87,16 +85,16 @@ func (up UserProxy) Update(u entities.User) (entities.User, error) {
 
 	defer serverCon.dispose()
 	c := serverCon.client
-	externalUser := &UserRequest{
+	externalUser := grpcService.User{
 		Id:       int32(u.Id),
-		Email:    u.EMail,
+		Email:    u.Email,
 		Name:     u.Name,
 		LastName: u.LastName,
 	}
 
-	result, errorFromCall := c.Update(serverCon.context, externalUser)
+	_, errorFromCall := c.Update(serverCon.context, &grpcService.UpdateUserRequest{User: &externalUser})
 
-	if result.Code != UpdateUserResponse_OK || errorFromCall != nil {
+	if errorFromCall != nil {
 		return entities.User{}, errorFromCall
 	}
 
@@ -113,12 +111,12 @@ func (up UserProxy) Delete(id int) (bool, error) {
 
 	defer serverCon.dispose()
 	c := serverCon.client
-	externalUserId := &UserId{
-		Id: int32(id),
+	externalUserId := &grpcService.Id{
+		Value: int32(id),
 	}
-	result, errorFromCall := c.Delete(serverCon.context, externalUserId)
+	_, errorFromCall := c.Delete(serverCon.context, externalUserId)
 
-	if result.Code == DeleteUserResponse_OK {
+	if errorFromCall != nil {
 		return true, nil
 	}
 
@@ -135,21 +133,23 @@ func (up UserProxy) GetByEmail(email string) (entities.User, error) {
 
 	defer serverCon.dispose()
 	c := serverCon.client
-	userFromGrpc, errorFromCall := c.GetUser(serverCon.context, &UserEmailRequest{EMail: email})
+	result, errorFromCall := c.GetUser(serverCon.context, &grpcService.EmailAddress{Value: email})
 
 	if errorFromCall != nil {
 		fmt.Println("server call did not work:", errorFromCall)
 		return entities.User{}, errorFromCall
 	}
 
+	userFromGrpc := result.User
+
 	response := entities.User{
 		Id:       int(userFromGrpc.Id),
-		EMail:    userFromGrpc.Email,
+		Email:    userFromGrpc.Email,
 		Name:     userFromGrpc.Name,
 		LastName: userFromGrpc.LastName,
 	}
 
-	return response, errorFromCall
+	return response, nil
 }
 
 func OpenServerConection() (*ServerConnection, error) {
@@ -163,7 +163,7 @@ func OpenServerConection() (*ServerConnection, error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 
-	c := NewUsersClient(conn)
+	c := grpcService.NewUsersClient(conn)
 
 	return &ServerConnection{client: c, context: ctx, dispose: func() {
 		cancel()
@@ -174,7 +174,7 @@ func OpenServerConection() (*ServerConnection, error) {
 }
 
 type ServerConnection struct {
-	client  UsersClient
+	client  grpcService.UsersClient
 	context context.Context
 	dispose func()
 }

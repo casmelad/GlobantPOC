@@ -6,7 +6,10 @@ import (
 	"net"
 
 	"github.com/caarlos0/env/v6"
-	uservice "github.com/casmelad/GlobantPOC/cmd/grpc_server/users"
+	grpcServiceImpl "github.com/casmelad/GlobantPOC/cmd/grpc_server/grpcservices"
+	grpcServices "github.com/casmelad/GlobantPOC/cmd/grpc_server/users"
+	infrastructure "github.com/casmelad/GlobantPOC/pkg/infrastructure"
+	appservices "github.com/casmelad/GlobantPOC/pkg/services"
 	"google.golang.org/grpc"
 )
 
@@ -25,7 +28,9 @@ func main() {
 	}
 
 	server := grpc.NewServer()
-	uservice.RegisterUsersServer(server, uservice.NewUserService())
+	repo := infrastructure.NewInMemoryUserRepository()
+	appService := appservices.NewUserService(repo)
+	grpcServices.RegisterUsersServer(server, grpcServiceImpl.NewGrpcUserService(appService))
 
 	if err := server.Serve(ls); err != nil {
 		log.Fatalf("failed to serve: %s", err)
@@ -35,5 +40,5 @@ func main() {
 }
 
 type config struct {
-	Port int `env:"GRPCSERVICE_PORT" envDefault:"9000"`
+	Port int `env:"GRPCSERVICE_PORT" envDefault:"9000"` //Como pasarlo hacia abajo?
 }

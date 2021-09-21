@@ -94,7 +94,7 @@ func (u *usersController) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userToUpdate.EMail = email
+	userToUpdate.Email = email
 
 	defer r.Body.Close()
 
