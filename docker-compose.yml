@@ -3,28 +3,26 @@ services:
   grpc:
     container_name: grpcservicedev
     build:      
-      dockerfile: Dockerfile
-      context: .
+      dockerfile: Dockerfile   
       target: grpcserver
-    ports:     
-      - "9000:9000"
-    volumes:
-      - .:/go/src/grpc
+    expose:
+      - "9000"  
     networks:
       - poc-network
   rest:
     container_name: restservicedev
     build:
-      dockerfile: Dockerfile
-      context: .
+      dockerfile: Dockerfile      
       target: restserver
     ports:
       - "8000:8000"
-      - "9000"
-    volumes:
-      - .:/go/src/rest
     networks:
       - poc-network
+    tty:
+      true
+    depends_on:
+      - grpc
+
 networks:
-  poc-network:
-    driver: bridge
+  poc-network: {}
+    

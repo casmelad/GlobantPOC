@@ -4,26 +4,31 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	grpcService "github.com/casmelad/GlobantPOC/cmd/REST_server/application/grpcservices"
 	entities "github.com/casmelad/GlobantPOC/cmd/REST_server/entities"
 	"google.golang.org/grpc"
+	glog "google.golang.org/grpc/grpclog"
 )
 
 type UserProxy struct {
+	grpcLog glog.LoggerV2
 }
 
 func NewUserProxy() *UserProxy {
-	return &UserProxy{}
+	return &UserProxy{
+		grpcLog: glog.NewLoggerV2(os.Stdout, os.Stdout, os.Stdout),
+	}
 }
 
 func (up UserProxy) GetAll() ([]entities.User, error) {
 
-	serverCon, err := OpenServerConection()
+	serverCon, err := OpenServerConection(up)
 
 	if err != nil {
-		log.Fatalf("did not connect to server: %s", err)
+		log.Fatalf(err.Error())
 	}
 
 	defer serverCon.dispose()
@@ -31,7 +36,7 @@ func (up UserProxy) GetAll() ([]entities.User, error) {
 	result, errorFromCall := c.GetAllUsers(serverCon.context, &grpcService.Filters{})
 
 	if errorFromCall != nil {
-		log.Fatalf("server call did not work: %s", err)
+		log.Fatalf(errorFromCall.Error())
 	}
 
 	response := []entities.User{}
@@ -50,7 +55,7 @@ func (up UserProxy) GetAll() ([]entities.User, error) {
 
 func (up UserProxy) Create(u entities.User) (entities.User, error) {
 
-	serverCon, err := OpenServerConection()
+	serverCon, err := OpenServerConection(up)
 
 	if err != nil {
 		log.Fatalf("did not connect to server: %s", err)
@@ -77,7 +82,7 @@ func (up UserProxy) Create(u entities.User) (entities.User, error) {
 
 func (up UserProxy) Update(u entities.User) (entities.User, error) {
 
-	serverCon, err := OpenServerConection()
+	serverCon, err := OpenServerConection(up)
 
 	if err != nil {
 		log.Fatalf("did not connect to server: %s", err)
@@ -103,7 +108,7 @@ func (up UserProxy) Update(u entities.User) (entities.User, error) {
 
 func (up UserProxy) Delete(id int) (bool, error) {
 
-	serverCon, err := OpenServerConection()
+	serverCon, err := OpenServerConection(up)
 
 	if err != nil {
 		log.Fatalf("did not connect to server: %s", err)
@@ -125,7 +130,7 @@ func (up UserProxy) Delete(id int) (bool, error) {
 
 func (up UserProxy) GetByEmail(email string) (entities.User, error) {
 
-	serverCon, err := OpenServerConection()
+	serverCon, err := OpenServerConection(up)
 
 	if err != nil {
 		log.Fatalf("did not connect to server: %s", err)
@@ -152,9 +157,11 @@ func (up UserProxy) GetByEmail(email string) (entities.User, error) {
 	return response, nil
 }
 
-func OpenServerConection() (*ServerConnection, error) {
+func OpenServerConection(up UserProxy) (*ServerConnection, error) {
 
-	conn, err := grpc.Dial(":9000", grpc.WithInsecure())
+	conn, err := grpc.Dial("grpc:9000", grpc.WithInsecure())
+
+	fmt.Println(conn)
 
 	if err != nil {
 		log.Fatalf("did not connect to server: %s", err)
@@ -164,6 +171,8 @@ func OpenServerConection() (*ServerConnection, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 
 	c := grpcService.NewUsersClient(conn)
+
+	fmt.Println(c)
 
 	return &ServerConnection{
 		client:  c,

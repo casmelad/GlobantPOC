@@ -2,15 +2,22 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
 	"github.com/caarlos0/env/v6"
 	"github.com/casmelad/GlobantPOC/cmd/REST_server/web"
 	"github.com/gorilla/mux"
+	glog "google.golang.org/grpc/grpclog"
 )
+
+var grpcLog glog.LoggerV2
+
+func init() {
+	grpcLog = glog.NewLoggerV2(os.Stdout, os.Stdout, os.Stdout)
+}
 
 func main() {
 
@@ -34,19 +41,14 @@ func main() {
 		ReadTimeout:  time.Duration(cfg.ReadTimeout) * time.Second,
 	}
 
-	err := srv.ListenAndServe()
+	fmt.Println(srv.ListenAndServe())
 
-	fmt.Println(err)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	grpcLog.Info("Starting server at port :8000")
 }
 
 type config struct {
 	Port         int    `env:"RESTSERVER_PORT" envDefault:"8000"`
-	Hosts        string `env:"RESTSERVER_HOSTS" envDefault:"127.0.0.1:"`
+	Hosts        string `env:"RESTSERVER_HOSTS" envDefault:":"`
 	WriteTimeout int    `env:"RESTSERVER_WRITETIMEOUT" envDefault:"15"`
 	ReadTimeout  int    `env:"RESTSERVER_READTIMEOUT" envDefault:"15"`
 }
