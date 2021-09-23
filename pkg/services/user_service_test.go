@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/casmelad/GlobantPOC/pkg/domain/entities"
@@ -54,20 +55,24 @@ func Test_Create_ValidData_OkResult(t *testing.T) {
 	//Assert
 	assert.Greater(t, result, 0)
 	assert.Nil(t, err)
+	repository.AssertExpectations(t)
+	repository.AssertNumberOfCalls(t, "Add", 1)
+	repository.AssertNumberOfCalls(t, "GetByEmail", 1)
 }
 
-func Test_Create_DuplicatedData_OkResult(t *testing.T) {
+func Test_Create_DuplicatedData_ReturnsAlreadyExistsError(t *testing.T) {
 	//Arrange
 	repository := repositoryMock{}
 	service := NewUserService(&repository)
 	userToAdd := entities.User{Id: 1, Email: "test@gmail.com", Name: "John", LastName: "Connor"}
-	repository.On("Add", userToAdd).Return(1)
 	repository.On("GetByEmail", userToAdd.Email).Return(userToAdd)
 	//Act
 	result, err := service.Create(userToAdd)
 	//Assert
 	assert.Equal(t, 0, result)
 	assert.NotNil(t, err)
+	repository.AssertExpectations(t)
+	repository.AssertNumberOfCalls(t, "GetByEmail", 1)
 }
 
 func Test_Create_InvalidData_ReturnsError(t *testing.T) {
@@ -88,11 +93,14 @@ func Test_Update_ValidData_OkResult(t *testing.T) {
 	service := NewUserService(&repository)
 	userToUpdate := entities.User{Id: 1, Email: "test@gmail.com", Name: "John", LastName: "Connor"}
 	repository.On("Update", userToUpdate).Return(1)
-	repository.On("GetById", userToUpdate.Id).Return(userToUpdate)
+	repository.On("GetByEmail", userToUpdate.Email).Return(userToUpdate)
 	//Act
 	err := service.Update(userToUpdate)
 	//Assert
 	assert.Nil(t, err)
+	repository.AssertExpectations(t)
+	repository.AssertNumberOfCalls(t, "GetByEmail", 1)
+	repository.AssertNumberOfCalls(t, "Update", 1)
 }
 
 func Test_Update_InvalidData_ReturnsError(t *testing.T) {
@@ -111,11 +119,13 @@ func Test_Update_InvalidUser_ReturnsError(t *testing.T) {
 	repository := repositoryMock{}
 	service := NewUserService(&repository)
 	userToUpdate := entities.User{Id: 1, Email: "test@gmail.com", Name: "John", LastName: "Connor"}
-	repository.On("GetById", userToUpdate.Id).Return(entities.User{})
+	repository.On("GetByEmail", userToUpdate.Email).Return(entities.User{})
 	//Act
 	err := service.Update(userToUpdate)
 	//Assert
 	assert.NotNil(t, err)
+	repository.AssertExpectations(t)
+	repository.AssertNumberOfCalls(t, "GetByEmail", 1)
 }
 
 func Test_Delete_ValidId_DeletesUser(t *testing.T) {
@@ -128,6 +138,9 @@ func Test_Delete_ValidId_DeletesUser(t *testing.T) {
 	result := service.Delete(1)
 	//Assert
 	assert.Nil(t, result)
+	repository.AssertExpectations(t)
+	repository.AssertNumberOfCalls(t, "GetById", 1)
+	repository.AssertNumberOfCalls(t, "Delete", 1)
 }
 
 func Test_Delete_InvalidId_ReturnsError(t *testing.T) {
@@ -151,6 +164,8 @@ func Test_Delete_InvalidId_ReturnsNotFoundError(t *testing.T) {
 	//Assert
 	assert.NotNil(t, result)
 	assert.Equal(t, "user not found", result.Error())
+	repository.AssertExpectations(t)
+	repository.AssertNumberOfCalls(t, "GetById", 1)
 }
 
 func Test_GetByEmail_ValidId_ReturnsData(t *testing.T) {
@@ -164,6 +179,8 @@ func Test_GetByEmail_ValidId_ReturnsData(t *testing.T) {
 	//
 	assert.Equal(t, expectedResult, result)
 	assert.Nil(t, err)
+	repository.AssertExpectations(t)
+	repository.AssertNumberOfCalls(t, "GetByEmail", 1)
 }
 
 func Test_GetByEmail_NotValidId_ReturnsErrorNotFound(t *testing.T) {
@@ -176,6 +193,8 @@ func Test_GetByEmail_NotValidId_ReturnsErrorNotFound(t *testing.T) {
 	//
 	assert.NotNil(t, err)
 	assert.Equal(t, "user not found", err.Error())
+	repository.AssertExpectations(t)
+	repository.AssertNumberOfCalls(t, "GetByEmail", 1)
 }
 
 func Test_GetAll_ReturnsNoError(t *testing.T) {
@@ -187,4 +206,37 @@ func Test_GetAll_ReturnsNoError(t *testing.T) {
 	_, err := service.GetAll()
 	//
 	assert.Nil(t, err)
+	repository.AssertExpectations(t)
+	repository.AssertNumberOfCalls(t, "GetAll", 1)
+}
+
+func Test_GetByEmail(t *testing.T) {
+
+	repository := repositoryMock{}
+	service := NewUserService(&repository)
+
+	for _, testCase := range tests {
+
+		repository.On("GetByEmail", testCase.email).Return(testCase.userExpected).Once()
+
+		result, err := service.GetByEmail(testCase.email)
+
+		assert.Equal(t, testCase.userExpected, result)
+		assert.Equal(t, testCase.errExpected, err)
+	}
+}
+
+var tests []struct {
+	name         string
+	email        string
+	userExpected entities.User
+	errExpected  error
+} = []struct {
+	name         string
+	email        string
+	userExpected entities.User
+	errExpected  error
+}{
+	{"ValidId_ReturnsData", "test@gmail.com", entities.User{Id: 1, Email: "test@gmail.com"}, nil},
+	{"NotValidId_ReturnsErrorNotFound", "test1@gmail.com", entities.User{}, errors.New("user not found")},
 }

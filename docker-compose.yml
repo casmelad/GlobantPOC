@@ -1,0 +1,30 @@
+version: "3.9"
+services:
+  grpc:
+    container_name: grpcservicedev
+    build:      
+      dockerfile: Dockerfile
+      context: .
+      target: grpcserver
+    ports:     
+      - "9000:9000"
+    volumes:
+      - .:/go/src/grpc
+    networks:
+      - poc-network
+  rest:
+    container_name: restservicedev
+    build:
+      dockerfile: Dockerfile
+      context: .
+      target: restserver
+    ports:
+      - "8000:8000"
+      - "9000"
+    volumes:
+      - .:/go/src/rest
+    networks:
+      - poc-network
+networks:
+  poc-network:
+    driver: bridge

@@ -3,7 +3,6 @@ package services
 import (
 	"errors"
 
-	"github.com/casmelad/GlobantPOC/pkg/domain"
 	"github.com/casmelad/GlobantPOC/pkg/domain/entities"
 	"gopkg.in/go-playground/validator.v9"
 )
@@ -18,10 +17,10 @@ type UserServiceInterface interface {
 }
 
 type UserService struct {
-	repository domain.UsersRepositoryInterface
+	repository UsersRepositoryInterface
 }
 
-func NewUserService(repo domain.UsersRepositoryInterface) *UserService {
+func NewUserService(repo UsersRepositoryInterface) *UserService {
 	return &UserService{
 		repository: repo,
 	}

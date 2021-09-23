@@ -34,7 +34,14 @@ func main() {
 		ReadTimeout:  time.Duration(cfg.ReadTimeout) * time.Second,
 	}
 
-	log.Fatal(srv.ListenAndServe())
+	err := srv.ListenAndServe()
+
+	fmt.Println(err)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }
 
 type config struct {

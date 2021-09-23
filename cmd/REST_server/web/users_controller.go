@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -17,6 +18,8 @@ type usersController struct {
 
 func (u *usersController) GetAll(w http.ResponseWriter, r *http.Request) {
 
+	fmt.Println("la peticion llega hasta acá ")
+
 	resp, err := u.dataSource.GetAll()
 
 	if err != nil {
@@ -27,6 +30,14 @@ func (u *usersController) GetAll(w http.ResponseWriter, r *http.Request) {
 	response := resp
 
 	respondWithJSON(w, http.StatusOK, response)
+
+}
+
+func (u *usersController) Hello(w http.ResponseWriter, r *http.Request) {
+
+	fmt.Println("la peticion llega hasta acá ")
+
+	respondWithJSON(w, http.StatusOK, "Hello world!!")
 
 }
 
@@ -72,6 +83,25 @@ func (u *usersController) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusCreated, userCreated)
+}
+
+func (u *usersController) CreateMany(w http.ResponseWriter, r *http.Request) {
+
+	for i := 0; i < 100; i++ {
+
+		intId := strconv.Itoa(i)
+
+		_, err := u.dataSource.Create(entities.User{
+			Email:    "user" + intId + "@gmail.com",
+			Name:     "test",
+			LastName: "test_last",
+		})
+
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+			break
+		}
+	}
 }
 
 func (u *usersController) Update(w http.ResponseWriter, r *http.Request) {

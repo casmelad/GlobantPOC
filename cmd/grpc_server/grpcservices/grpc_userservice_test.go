@@ -61,6 +61,7 @@ func Test_GetUser_ValidEmail_ReturnsUser(t *testing.T) {
 	//Assert
 	assert.Nil(t, err)
 	assert.Equal(t, &users.GetUserResponse{User: &expectedValue}, result)
+	applicationService.AssertExpectations(t)
 }
 
 func Test_GetUser_InvalidEmail_ReturnsNotFoundError(t *testing.T) {
@@ -70,6 +71,7 @@ func Test_GetUser_InvalidEmail_ReturnsNotFoundError(t *testing.T) {
 	_, err := grpcService.GetUser(ctx, &users.EmailAddress{Value: emailAddress})
 	//Assert
 	assert.NotNil(t, err)
+	applicationService.AssertExpectations(t)
 }
 
 func Test_GetAll_ReturnsNoError(t *testing.T) {
@@ -80,6 +82,7 @@ func Test_GetAll_ReturnsNoError(t *testing.T) {
 	//Assert
 	assert.Nil(t, err)
 	assert.NotEmpty(t, users.Users)
+	applicationService.AssertExpectations(t)
 }
 
 func Test_Create_ValidData_ReturnsNoError(t *testing.T) {
@@ -91,7 +94,8 @@ func Test_Create_ValidData_ReturnsNoError(t *testing.T) {
 	result, err := grpcService.Create(ctx, &users.CreateUserRequest{User: &userToCreate})
 	//Arrange
 	assert.Nil(t, err)
-	assert.Equal(t, &users.CreateUserResponse{UserId: 1, Code: users.CodeResult_OK}, result)
+	assert.Equal(t, users.CodeResult_OK, result.Code)
+	applicationService.AssertExpectations(t)
 }
 
 func Test_Create_InvalidData_ReturnsInvalidDataError(t *testing.T) {
@@ -103,7 +107,8 @@ func Test_Create_InvalidData_ReturnsInvalidDataError(t *testing.T) {
 	result, err := grpcService.Create(ctx, &users.CreateUserRequest{User: &userToCreate})
 	//Arrange
 	assert.NotNil(t, err)
-	assert.Equal(t, &users.CreateUserResponse{UserId: 0, Code: users.CodeResult_INVALIDINPUT}, result)
+	assert.Equal(t, users.CodeResult_INVALIDINPUT, result.Code)
+	applicationService.AssertExpectations(t)
 }
 
 func Test_Create_DuplicatedData_ReturnsAlreadyExistsError(t *testing.T) {
@@ -115,7 +120,8 @@ func Test_Create_DuplicatedData_ReturnsAlreadyExistsError(t *testing.T) {
 	result, err := grpcService.Create(ctx, &users.CreateUserRequest{User: &userToCreate})
 	//Arrange
 	assert.NotNil(t, err)
-	assert.Equal(t, &users.CreateUserResponse{UserId: 0, Code: users.CodeResult_FAILED}, result)
+	assert.Equal(t, users.CodeResult_FAILED, result.Code)
+	applicationService.AssertExpectations(t)
 }
 
 func Test_Update_ValidData_ReturnsNoError(t *testing.T) {
@@ -127,7 +133,8 @@ func Test_Update_ValidData_ReturnsNoError(t *testing.T) {
 	result, err := grpcService.Update(ctx, &users.UpdateUserRequest{User: &userToCreate})
 	//Arrange
 	assert.Nil(t, err)
-	assert.Equal(t, &users.UpdateUserResponse{Code: users.CodeResult_OK}, result)
+	assert.Equal(t, users.CodeResult_OK, result.Code)
+	applicationService.AssertExpectations(t)
 }
 
 func Test_Update_InvalidUserData_ReturnsNotFoundError(t *testing.T) {
@@ -140,6 +147,7 @@ func Test_Update_InvalidUserData_ReturnsNotFoundError(t *testing.T) {
 	//Arrange
 	assert.NotNil(t, err)
 	assert.Equal(t, users.CodeResult_NOTFOUND, result.Code)
+	applicationService.AssertExpectations(t)
 }
 
 func Test_Update_InvalidUserData_ReturnsInvalidInputError(t *testing.T) {
@@ -152,6 +160,7 @@ func Test_Update_InvalidUserData_ReturnsInvalidInputError(t *testing.T) {
 	//Arrange
 	assert.NotNil(t, err)
 	assert.Equal(t, users.CodeResult_INVALIDINPUT, result.Code)
+	applicationService.AssertExpectations(t)
 }
 
 func Test_Update_InvalidUserData_ReturnsFailedError(t *testing.T) {
@@ -164,6 +173,7 @@ func Test_Update_InvalidUserData_ReturnsFailedError(t *testing.T) {
 	//Arrange
 	assert.NotNil(t, err)
 	assert.Equal(t, users.CodeResult_FAILED, result.Code)
+	applicationService.AssertExpectations(t)
 }
 
 func Test_Delete_InvalidId_ReturnsNotFoundError(t *testing.T) {
@@ -174,7 +184,7 @@ func Test_Delete_InvalidId_ReturnsNotFoundError(t *testing.T) {
 	//Assert
 	assert.NotNil(t, err)
 	assert.Equal(t, users.CodeResult_NOTFOUND, result.Code)
-
+	applicationService.AssertExpectations(t)
 }
 
 func Test_Delete_IdZero_ReturnsInvalidInputError(t *testing.T) {
@@ -185,7 +195,7 @@ func Test_Delete_IdZero_ReturnsInvalidInputError(t *testing.T) {
 	//Assert
 	assert.NotNil(t, err)
 	assert.Equal(t, users.CodeResult_INVALIDINPUT, result.Code)
-
+	applicationService.AssertExpectations(t)
 }
 
 func Test_Delete_InternalError_ReturnsError(t *testing.T) {
@@ -196,5 +206,5 @@ func Test_Delete_InternalError_ReturnsError(t *testing.T) {
 	//Assert
 	assert.NotNil(t, err)
 	assert.Equal(t, users.CodeResult_FAILED, result.Code)
-
+	applicationService.AssertExpectations(t)
 }

@@ -165,11 +165,14 @@ func OpenServerConection() (*ServerConnection, error) {
 
 	c := grpcService.NewUsersClient(conn)
 
-	return &ServerConnection{client: c, context: ctx, dispose: func() {
-		cancel()
-		conn.Close()
-
-	}}, nil
+	return &ServerConnection{
+		client:  c,
+		context: ctx,
+		dispose: func() {
+			cancel()
+			conn.Close()
+		},
+	}, nil
 
 }
 
