@@ -2,7 +2,6 @@ package web
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -18,8 +17,6 @@ type usersController struct {
 
 func (u *usersController) GetAll(w http.ResponseWriter, r *http.Request) {
 
-	fmt.Println("la peticion llega hasta acá ")
-
 	resp, err := u.dataSource.GetAll()
 
 	if err != nil {
@@ -30,14 +27,6 @@ func (u *usersController) GetAll(w http.ResponseWriter, r *http.Request) {
 	response := resp
 
 	respondWithJSON(w, http.StatusOK, response)
-
-}
-
-func (u *usersController) Hello(w http.ResponseWriter, r *http.Request) {
-
-	fmt.Println("la peticion llega hasta acá ")
-
-	respondWithJSON(w, http.StatusOK, "Hello world!!")
 
 }
 

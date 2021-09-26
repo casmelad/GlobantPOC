@@ -5,10 +5,16 @@ services:
     build:      
       dockerfile: Dockerfile   
       target: grpcserver
+    environment:
+      - GRPCSERVICE_PORT=9000      
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=:3306     
     expose:
       - "9000"  
     networks:
       - poc-network
+    depends_on:
+      - mysql
   rest:
     container_name: restservicedev
     build:
@@ -16,12 +22,26 @@ services:
       target: restserver
     ports:
       - "8000:8000"
+    environment:
+      - GRPCSERVICE_HOST=grpc
+      - GRPCSERVICE_PORT=9000
     networks:
       - poc-network
-    tty:
-      true
     depends_on:
       - grpc
+  mysql:
+    image: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=BulkD3v_mysql
+      - MYSQL_DATABASE=Users
+    expose:
+      - "3306"
+    volumes:
+      - ./seeds/migrations-schema.sql:/docker-entrypoint-initdb.d/init.sql
+    tty:
+      true
+    networks:
+      - poc-network
 
 networks:
   poc-network: {}

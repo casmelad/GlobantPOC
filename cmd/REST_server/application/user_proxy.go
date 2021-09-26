@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
+	"github.com/caarlos0/env/v6"
 	grpcService "github.com/casmelad/GlobantPOC/cmd/REST_server/application/grpcservices"
 	entities "github.com/casmelad/GlobantPOC/cmd/REST_server/entities"
 	"google.golang.org/grpc"
@@ -15,6 +17,11 @@ import (
 
 type UserProxy struct {
 	grpcLog glog.LoggerV2
+}
+
+type config struct {
+	Port int    `env:"GRPCSERVICE_PORT" envDefault:"9000"`
+	Host string `env:"GRPCSERVICE_HOST" envDefault:"127.0.0.1"`
 }
 
 func NewUserProxy() *UserProxy {
@@ -114,6 +121,8 @@ func (up UserProxy) Delete(id int) (bool, error) {
 		log.Fatalf("did not connect to server: %s", err)
 	}
 
+	fmt.Println(id)
+
 	defer serverCon.dispose()
 	c := serverCon.client
 	externalUserId := &grpcService.Id{
@@ -122,7 +131,7 @@ func (up UserProxy) Delete(id int) (bool, error) {
 	_, errorFromCall := c.Delete(serverCon.context, externalUserId)
 
 	if errorFromCall != nil {
-		return true, nil
+		return true, errorFromCall
 	}
 
 	return false, errorFromCall
@@ -159,9 +168,13 @@ func (up UserProxy) GetByEmail(email string) (entities.User, error) {
 
 func OpenServerConection(up UserProxy) (*ServerConnection, error) {
 
-	conn, err := grpc.Dial("grpc:9000", grpc.WithInsecure())
+	cfg := config{}
 
-	fmt.Println(conn)
+	if err := env.Parse(&cfg); err != nil {
+		fmt.Printf("%+v\n", err)
+	}
+
+	conn, err := grpc.Dial(fmt.Sprintf("%s:%s", cfg.Host, strconv.Itoa(cfg.Port)), grpc.WithInsecure())
 
 	if err != nil {
 		log.Fatalf("did not connect to server: %s", err)
@@ -171,8 +184,6 @@ func OpenServerConection(up UserProxy) (*ServerConnection, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 
 	c := grpcService.NewUsersClient(conn)
-
-	fmt.Println(c)
 
 	return &ServerConnection{
 		client:  c,
