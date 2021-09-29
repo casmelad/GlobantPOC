@@ -1,9 +1,10 @@
+#unificar las imagenes con una base
 FROM alpine as grpcserver
 
 ENV GO111MODULE=on
 
 RUN apk add --no-cache go
-RUN apk add bash ca-certificates git gcc g++ libc-dev
+RUN apk add bash ca-certificates
 
 WORKDIR /go/src/grpc
 COPY . .
@@ -22,11 +23,10 @@ CMD ./grpcservice
 
 FROM alpine as restserver
 
-
 ENV GO111MODULE=on
 
 RUN apk add --no-cache go
-RUN apk add bash ca-certificates git gcc g++ libc-dev
+RUN apk add bash ca-certificates
 
 WORKDIR /go/src/rest
 COPY . .

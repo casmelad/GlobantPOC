@@ -1,7 +1,8 @@
-package entities
+package users
 
+//User - represents a user
 type User struct {
-	Id       int    `json:"id"`
+	ID       int    `json:"id"`
 	Email    string `json:"email" validate:"required,email"`
 	Name     string `json:"name" validate:"required"`
 	LastName string `json:"lastname" validate:"required"`

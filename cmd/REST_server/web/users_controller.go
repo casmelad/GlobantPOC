@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -76,21 +77,27 @@ func (u *usersController) Create(w http.ResponseWriter, r *http.Request) {
 
 func (u *usersController) CreateMany(w http.ResponseWriter, r *http.Request) {
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 10; i++ {
 
-		intId := strconv.Itoa(i)
+		go func(index int) {
+			intId := strconv.Itoa(index)
 
-		_, err := u.dataSource.Create(entities.User{
-			Email:    "user" + intId + "@gmail.com",
-			Name:     "test",
-			LastName: "test_last",
-		})
+			fmt.Println("user" + intId + "@gmail.com")
 
-		if err != nil {
-			respondWithError(w, http.StatusInternalServerError, err.Error())
-			break
-		}
+			_, err := u.dataSource.Create(entities.User{
+				Email:    "user" + intId + "@gmail.com",
+				Name:     "test",
+				LastName: "test_last",
+			})
+
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+
+		}(i)
 	}
+
+	respondWithError(w, http.StatusInternalServerError, "wewew")
 }
 
 func (u *usersController) Update(w http.ResponseWriter, r *http.Request) {

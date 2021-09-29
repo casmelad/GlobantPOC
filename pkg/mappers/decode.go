@@ -1,22 +1,24 @@
 package mappers
 
 import (
-	"github.com/casmelad/GlobantPOC/cmd/grpc_server/users"
-	"github.com/casmelad/GlobantPOC/pkg/domain/entities"
+	grpc "github.com/casmelad/GlobantPOC/cmd/grpc_server/users"
+	users "github.com/casmelad/GlobantPOC/pkg/users"
 )
 
-func ToDomainUser(userToMap users.User) (entities.User, error) {
-	return entities.User{
-		Id:       int(userToMap.Id),
+//ToDomainUser maps a grpc user to domain user
+func ToDomainUser(userToMap grpc.User) (users.User, error) {
+	return users.User{
+		ID:       int(userToMap.Id),
 		Email:    userToMap.Email,
 		Name:     userToMap.Name,
 		LastName: userToMap.LastName,
 	}, nil
 }
 
-func ToGrpcUser(userToMap entities.User) (users.User, error) {
-	return users.User{
-		Id:       int32(userToMap.Id),
+//ToGrpcUser maps a domain user to a grpc user
+func ToGrpcUser(userToMap users.User) (grpc.User, error) {
+	return grpc.User{
+		Id:       int32(userToMap.ID),
 		Email:    userToMap.Email,
 		Name:     userToMap.Name,
 		LastName: userToMap.LastName,

@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 
 	"github.com/caarlos0/env/v6"
 	grpcServiceImpl "github.com/casmelad/GlobantPOC/cmd/grpc_server/grpcservices"
 	grpcServices "github.com/casmelad/GlobantPOC/cmd/grpc_server/users"
-	infrastructure "github.com/casmelad/GlobantPOC/pkg/infrastructure"
-	appservices "github.com/casmelad/GlobantPOC/pkg/services"
+	memory "github.com/casmelad/GlobantPOC/pkg/repository/memory"
+	mysql "github.com/casmelad/GlobantPOC/pkg/repository/mysql"
+	"github.com/casmelad/GlobantPOC/pkg/users"
 	"google.golang.org/grpc"
 )
 
@@ -23,25 +25,41 @@ func main() {
 
 	ls, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Port))
 
-	fmt.Println(ls.Addr().String())
-	fmt.Println(ls.Addr().Network())
-
 	if err != nil {
 		log.Fatalf("Could not create the listener %v", err)
 	}
 
 	server := grpc.NewServer()
-	repo := infrastructure.NewMySqlUserRepository()
-	appService := appservices.NewUserService(repo)
+	appService := users.NewUserService(getActiveRepository())
 	grpcServices.RegisterUsersServer(server, grpcServiceImpl.NewGrpcUserService(appService))
 
 	if err := server.Serve(ls); err != nil {
 		log.Fatalf("failed to serve: %s", err)
 	}
+}
 
-	fmt.Println("Server is running!")
+func getActiveRepository() users.Repository {
+
+	envVar := os.Getenv("USERS_REPOSITORY")
+
+	if len(envVar) == 0 {
+		envVar = "mysql"
+	}
+
+	switch envVar {
+	case "memory":
+		repo := memory.NewInMemoryUserRepository()
+		return repo
+	case "mysql":
+		repo, err := mysql.NewMySQLUserRepository()
+		if err != nil {
+			log.Fatal(err)
+		}
+		return repo
+	}
+	return nil
 }
 
 type config struct {
-	Port int `env:"GRPCSERVICE_PORT" envDefault:"9000"` //Como pasarlo hacia abajo?
+	Port int `env:"GRPCSERVICE_PORT" envDefault:"9000"`
 }

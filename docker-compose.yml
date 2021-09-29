@@ -18,7 +18,7 @@ services:
   rest:
     container_name: restservicedev
     build:
-      dockerfile: Dockerfile      
+      dockerfile: Dockerfile
       target: restserver
     ports:
       - "8000:8000"

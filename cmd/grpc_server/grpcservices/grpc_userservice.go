@@ -5,22 +5,22 @@ import (
 
 	pb "github.com/casmelad/GlobantPOC/cmd/grpc_server/users"
 	mapper "github.com/casmelad/GlobantPOC/pkg/mappers"
-	"github.com/casmelad/GlobantPOC/pkg/services"
+	users "github.com/casmelad/GlobantPOC/pkg/users"
 )
 
 type GrpcUserService struct {
-	usersService services.UserServiceInterface
+	usersService users.Service
 }
 
-func NewGrpcUserService(us services.UserServiceInterface) *GrpcUserService {
+func NewGrpcUserService(us users.Service) *GrpcUserService {
 	return &GrpcUserService{
 		usersService: us,
 	}
 }
 
-func (u *GrpcUserService) GetUser(c context.Context, uid *pb.EmailAddress) (*pb.GetUserResponse, error) {
+func (u *GrpcUserService) GetUser(ctx context.Context, uid *pb.EmailAddress) (*pb.GetUserResponse, error) {
 
-	usr, err := u.usersService.GetByEmail(uid.Value)
+	usr, err := u.usersService.GetByEmail(ctx, uid.Value)
 
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func (u *GrpcUserService) Create(ctx context.Context, user *pb.CreateUserRequest
 		return nil, errMapping
 	}
 
-	newUserId, err := u.usersService.Create(userToCreate)
+	newUserId, err := u.usersService.Create(ctx, userToCreate)
 
 	if err != nil {
 		if err.Error() == "user already exists" {
@@ -55,7 +55,7 @@ func (u *GrpcUserService) Create(ctx context.Context, user *pb.CreateUserRequest
 
 func (u *GrpcUserService) GetAllUsers(ctx context.Context, v *pb.Filters) (*pb.GetAllUsersResponse, error) {
 
-	users, err := u.usersService.GetAll()
+	users, err := u.usersService.GetAll(ctx)
 	response := []*pb.User{}
 
 	if err != nil {
@@ -83,7 +83,7 @@ func (u *GrpcUserService) Update(ctx context.Context, user *pb.UpdateUserRequest
 		return &pb.UpdateUserResponse{Code: pb.CodeResult_FAILED}, err
 	}
 
-	err_u := u.usersService.Update(userToUpdate)
+	err_u := u.usersService.Update(ctx, userToUpdate)
 
 	if err_u != nil {
 		errorMessage := err_u.Error()
@@ -102,7 +102,7 @@ func (u *GrpcUserService) Update(ctx context.Context, user *pb.UpdateUserRequest
 
 func (u *GrpcUserService) Delete(ctx context.Context, userId *pb.Id) (*pb.DeleteUserResponse, error) {
 
-	err := u.usersService.Delete(int(userId.Value))
+	err := u.usersService.Delete(ctx, int(userId.Value))
 
 	if err != nil {
 		errorMessage := err.Error()
