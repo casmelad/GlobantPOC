@@ -43,7 +43,7 @@ func getActiveRepository() users.Repository {
 	envVar := os.Getenv("USERS_REPOSITORY")
 
 	if len(envVar) == 0 {
-		envVar = "mysql"
+		envVar = "memory"
 	}
 
 	switch envVar {

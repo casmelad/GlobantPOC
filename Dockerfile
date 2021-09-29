@@ -1,41 +1,37 @@
-#unificar las imagenes con una base
-FROM alpine as grpcserver
-
-ENV GO111MODULE=on
-
-RUN apk add --no-cache go
-RUN apk add bash ca-certificates
-
-WORKDIR /go/src/grpc
+############################
+# STEP 1 build executable binary
+############################
+FROM golang:alpine AS builder
+# Install git.
+# Git is required for fetching the dependencies.
+RUN apk update && apk add --no-cache git
+WORKDIR /src
 COPY . .
-
-COPY go.mod .
-COPY go.sum .
+# Fetch dependencies.
+# Using go get.
 RUN go mod download
-RUN go build -o grpcservice ./cmd/grpc_server/.
+# Build the binary.
+RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o grpcservice ./cmd/grpc_server/.
+RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o restservice ./cmd/REST_server/.
 
-EXPOSE 9000
+############################
+# STEP 2 grpc service
+############################
+FROM golang:alpine as grpcserver
 
-CMD ./grpcservice
+WORKDIR /
 
+COPY --from=builder /src/grpcservice ./grpcservice
 
-# Set necessary environmet variables needed for the REST server
+ENTRYPOINT ["/grpcservice"]
 
-FROM alpine as restserver
+############################
+# STEP 3 REST service
+############################
+FROM golang:alpine as restserver
 
-ENV GO111MODULE=on
+WORKDIR /
 
-RUN apk add --no-cache go
-RUN apk add bash ca-certificates
+COPY --from=builder /src/restservice ./restservice
 
-WORKDIR /go/src/rest
-COPY . .
-
-COPY go.mod .
-COPY go.sum .
-RUN go mod download
-RUN go build -o restservice ./cmd/REST_server/.
-
-EXPOSE 8000
-
-CMD ./restservice
+ENTRYPOINT ["/restservice"]

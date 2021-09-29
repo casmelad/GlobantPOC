@@ -8,7 +8,8 @@ services:
     environment:
       - GRPCSERVICE_PORT=9000      
       - MYSQL_HOST=mysql
-      - MYSQL_PORT=:3306     
+      - MYSQL_PORT=:3306    
+      - USERS_REPOSITORY=mysql
     expose:
       - "9000"  
     networks:
@@ -30,6 +31,7 @@ services:
     depends_on:
       - grpc
   mysql:
+    container_name: mysqlserver
     image: mysql
     environment:
       - MYSQL_ROOT_PASSWORD=BulkD3v_mysql

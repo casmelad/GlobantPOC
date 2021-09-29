@@ -50,8 +50,6 @@ func (repo *InMemoryUserRepository) GetByID(ctx context.Context, userID int) (us
 
 //GetByEmail - retrieves a user from the repository based on the email address
 func (repo *InMemoryUserRepository) GetByEmail(ctx context.Context, id string) (users.User, error) {
-	fmt.Println(len(repo.dict))
-	fmt.Println(id)
 	return repo.dict[id], nil
 }
 

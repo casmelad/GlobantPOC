@@ -77,12 +77,10 @@ func (u *usersController) Create(w http.ResponseWriter, r *http.Request) {
 
 func (u *usersController) CreateMany(w http.ResponseWriter, r *http.Request) {
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 100; i++ {
 
 		go func(index int) {
 			intId := strconv.Itoa(index)
-
-			fmt.Println("user" + intId + "@gmail.com")
 
 			_, err := u.dataSource.Create(entities.User{
 				Email:    "user" + intId + "@gmail.com",
