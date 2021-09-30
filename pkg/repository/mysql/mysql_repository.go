@@ -1,4 +1,4 @@
-package mysql
+package repository
 
 import (
 	"context"
@@ -9,6 +9,15 @@ import (
 	"github.com/caarlos0/env/v6"
 	"github.com/casmelad/GlobantPOC/pkg/users"
 	_ "github.com/go-sql-driver/mysql" //only for implicit use
+)
+
+const (
+	INSERTUSER         = "INSERT INTO Users(Email, Name, LastName) VALUES (?, ?, ?)"
+	SELECTUSERBYID     = "SELECT Id, Email, Name, LastName FROM Users WHERE Id = ?"
+	SELECTUSEERBYEMAIL = "SELECT Id, Email, Name, LastName FROM Users WHERE Email = ?"
+	SELECTALLUSERS     = "SELECT Id, Email, Name, LastName FROM Users"
+	UPDATEUSER         = "UPDATE Users SET Name=?, LastName=? WHERE Id = ?"
+	DELETEUSER         = "DELETE FROM Users WHERE Id= ?"
 )
 
 type config struct {
@@ -63,7 +72,7 @@ func NewMySQLUserRepository() (*MySQLRepository, error) {
 //Add - adds a user to the repository
 func (r *MySQLRepository) Add(ctx context.Context, usr users.User) (int, error) {
 
-	stmt, err := r.db.Prepare("INSERT INTO Users(Email, Name, LastName) VALUES (?, ?, ?)")
+	stmt, err := r.db.Prepare(INSERTUSER)
 
 	if err != nil {
 		return 0, err
@@ -90,7 +99,7 @@ func (r *MySQLRepository) GetByID(ctx context.Context, userID int) (users.User, 
 
 	usr := users.User{}
 
-	err := r.db.QueryRow("SELECT Id, Email, Name, LastName FROM Users WHERE Id = ?", userID).
+	err := r.db.QueryRow(SELECTUSERBYID, userID).
 		Scan(&usr.ID, &usr.Email, &usr.Name, &usr.LastName)
 
 	if err == sql.ErrNoRows {
@@ -105,7 +114,7 @@ func (r *MySQLRepository) GetByID(ctx context.Context, userID int) (users.User, 
 func (r *MySQLRepository) GetByEmail(ctx context.Context, email string) (users.User, error) {
 
 	usr := users.User{}
-	row := r.db.QueryRow("SELECT Id, Email, Name, LastName FROM Users WHERE Email = ?", email)
+	row := r.db.QueryRow(SELECTUSEERBYEMAIL, email)
 	err := row.Scan(&usr.ID, &usr.Email, &usr.Name, &usr.LastName)
 
 	if err == sql.ErrNoRows {
@@ -119,7 +128,7 @@ func (r *MySQLRepository) GetByEmail(ctx context.Context, email string) (users.U
 func (r *MySQLRepository) GetAll(ctx context.Context) ([]users.User, error) {
 
 	usrs := []users.User{}
-	records, err := r.db.Query("SELECT Id, Email, Name, LastName FROM Users")
+	records, err := r.db.Query(SELECTALLUSERS)
 
 	if err != nil {
 		fmt.Println(err)
@@ -143,7 +152,7 @@ func (r *MySQLRepository) GetAll(ctx context.Context) ([]users.User, error) {
 //Update -  updates the information of a user
 func (r *MySQLRepository) Update(ctx context.Context, usr users.User) error {
 
-	stmt, err := r.db.Prepare("UPDATE Users SET Name=?, LastName=? WHERE Id = ?")
+	stmt, err := r.db.Prepare(UPDATEUSER)
 	if err != nil {
 		return err
 	}
@@ -164,7 +173,7 @@ func (r *MySQLRepository) Update(ctx context.Context, usr users.User) error {
 //Delete - deletes a user from the repository
 func (r *MySQLRepository) Delete(ctx context.Context, userID int) error {
 
-	stmt, err := r.db.Prepare("DELETE FROM Users WHERE Id= ?")
+	stmt, err := r.db.Prepare(DELETEUSER)
 
 	if err != nil {
 		return err
