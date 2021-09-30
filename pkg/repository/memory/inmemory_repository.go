@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/casmelad/GlobantPOC/pkg/users"
 )
@@ -24,7 +23,6 @@ func NewInMemoryUserRepository() *InMemoryUserRepository {
 //Add - adds a user to the repository
 func (repo *InMemoryUserRepository) Add(ctx context.Context, u users.User) (int, error) {
 
-	fmt.Println(u)
 	if _, ok := repo.dict[u.Email]; ok {
 		return 0, nil
 	}

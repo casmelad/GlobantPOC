@@ -95,7 +95,7 @@ func (u *usersController) CreateMany(w http.ResponseWriter, r *http.Request) {
 		}(i)
 	}
 
-	respondWithError(w, http.StatusInternalServerError, "wewew")
+	respondWithJSON(w, http.StatusNoContent, "Ok")
 }
 
 func (u *usersController) Update(w http.ResponseWriter, r *http.Request) {
