@@ -3,15 +3,15 @@ package mappers
 import (
 	"testing"
 
-	"github.com/casmelad/GlobantPOC/cmd/grpc_server/users"
-	entities "github.com/casmelad/GlobantPOC/pkg/users"
+	proto "github.com/casmelad/GlobantPOC/cmd/grpcService/users/proto"
+	domain "github.com/casmelad/GlobantPOC/pkg/users"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_ToDomainUser_ResultOk(t *testing.T) {
 	//Arrange
-	toMap := users.User{Id: 999999}
-	expectedResult := entities.User{ID: 999999}
+	toMap := proto.User{Id: 999999}
+	expectedResult := domain.User{ID: 999999}
 
 	//Act
 	result, err := ToDomainUser(toMap)
@@ -24,8 +24,8 @@ func Test_ToDomainUser_ResultOk(t *testing.T) {
 func Test_ToGrpcUser_ResultOk(t *testing.T) {
 
 	//Arrange
-	toMap := entities.User{ID: 999999}
-	expectedResult := users.User{Id: 999999}
+	toMap := domain.User{ID: 999999}
+	expectedResult := proto.User{Id: 999999}
 
 	//Act
 	result, err := ToGrpcUser(toMap)

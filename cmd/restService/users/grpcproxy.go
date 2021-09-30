@@ -1,4 +1,4 @@
-package application
+package users
 
 import (
 	"context"
@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/caarlos0/env/v6"
-	grpcService "github.com/casmelad/GlobantPOC/cmd/REST_server/application/grpcservices"
-	entities "github.com/casmelad/GlobantPOC/cmd/REST_server/entities"
+
+	proto "github.com/casmelad/GlobantPOC/cmd/restService/users/proto"
 	"google.golang.org/grpc"
 	glog "google.golang.org/grpc/grpclog"
 )
@@ -20,8 +20,8 @@ type UserProxy struct {
 }
 
 type config struct {
-	Port int    `env:"GRPCSERVICE_PORT" envDefault:"9000"`
-	Host string `env:"GRPCSERVICE_HOST" envDefault:"127.0.0.1"`
+	Port int    `env:"proto_PORT" envDefault:"9000"`
+	Host string `env:"proto_HOST" envDefault:"127.0.0.1"`
 }
 
 func NewUserProxy() *UserProxy {
@@ -30,7 +30,7 @@ func NewUserProxy() *UserProxy {
 	}
 }
 
-func (up UserProxy) GetAll() ([]entities.User, error) {
+func (up UserProxy) GetAll() ([]User, error) {
 
 	serverCon, err := OpenServerConection(up)
 
@@ -40,16 +40,16 @@ func (up UserProxy) GetAll() ([]entities.User, error) {
 
 	defer serverCon.dispose()
 	c := serverCon.client
-	result, errorFromCall := c.GetAllUsers(serverCon.context, &grpcService.Filters{})
+	result, errorFromCall := c.GetAllUsers(serverCon.context, &proto.Filters{})
 
 	if errorFromCall != nil {
 		log.Fatalf(errorFromCall.Error())
 	}
 
-	response := []entities.User{}
+	response := []User{}
 
 	for _, o := range result.Users {
-		response = append(response, entities.User{
+		response = append(response, User{
 			Id:       int(o.Id),
 			Email:    o.Email,
 			Name:     o.Name,
@@ -60,7 +60,7 @@ func (up UserProxy) GetAll() ([]entities.User, error) {
 	return response, errorFromCall
 }
 
-func (up UserProxy) Create(u entities.User) (entities.User, error) {
+func (up UserProxy) Create(u User) (User, error) {
 
 	serverCon, err := OpenServerConection(up)
 
@@ -70,24 +70,24 @@ func (up UserProxy) Create(u entities.User) (entities.User, error) {
 
 	defer serverCon.dispose()
 	c := serverCon.client
-	externalUser := &grpcService.User{
+	externalUser := &proto.User{
 		Id:       0,
 		Email:    u.Email,
 		Name:     u.Name,
 		LastName: u.LastName,
 	}
 
-	result, errorFromCall := c.Create(serverCon.context, &grpcService.CreateUserRequest{User: externalUser})
+	result, errorFromCall := c.Create(serverCon.context, &proto.CreateUserRequest{User: externalUser})
 
 	if errorFromCall != nil {
-		return entities.User{}, errorFromCall
+		return User{}, errorFromCall
 	}
 
 	u.Id = int(result.UserId)
 	return u, errorFromCall
 }
 
-func (up UserProxy) Update(u entities.User) (entities.User, error) {
+func (up UserProxy) Update(u User) (User, error) {
 
 	serverCon, err := OpenServerConection(up)
 
@@ -97,17 +97,17 @@ func (up UserProxy) Update(u entities.User) (entities.User, error) {
 
 	defer serverCon.dispose()
 	c := serverCon.client
-	externalUser := grpcService.User{
+	externalUser := proto.User{
 		Id:       int32(u.Id),
 		Email:    u.Email,
 		Name:     u.Name,
 		LastName: u.LastName,
 	}
 
-	_, errorFromCall := c.Update(serverCon.context, &grpcService.UpdateUserRequest{User: &externalUser})
+	_, errorFromCall := c.Update(serverCon.context, &proto.UpdateUserRequest{User: &externalUser})
 
 	if errorFromCall != nil {
-		return entities.User{}, errorFromCall
+		return User{}, errorFromCall
 	}
 
 	return u, nil
@@ -125,7 +125,7 @@ func (up UserProxy) Delete(id int) (bool, error) {
 
 	defer serverCon.dispose()
 	c := serverCon.client
-	externalUserId := &grpcService.Id{
+	externalUserId := &proto.Id{
 		Value: int32(id),
 	}
 	_, errorFromCall := c.Delete(serverCon.context, externalUserId)
@@ -137,7 +137,7 @@ func (up UserProxy) Delete(id int) (bool, error) {
 	return false, errorFromCall
 }
 
-func (up UserProxy) GetByEmail(email string) (entities.User, error) {
+func (up UserProxy) GetByEmail(email string) (User, error) {
 
 	serverCon, err := OpenServerConection(up)
 
@@ -147,16 +147,16 @@ func (up UserProxy) GetByEmail(email string) (entities.User, error) {
 
 	defer serverCon.dispose()
 	c := serverCon.client
-	result, errorFromCall := c.GetUser(serverCon.context, &grpcService.EmailAddress{Value: email})
+	result, errorFromCall := c.GetUser(serverCon.context, &proto.EmailAddress{Value: email})
 
 	if errorFromCall != nil {
 		fmt.Println("server call did not work:", errorFromCall)
-		return entities.User{}, errorFromCall
+		return User{}, errorFromCall
 	}
 
 	userFromGrpc := result.User
 
-	response := entities.User{
+	response := User{
 		Id:       int(userFromGrpc.Id),
 		Email:    userFromGrpc.Email,
 		Name:     userFromGrpc.Name,
@@ -183,7 +183,7 @@ func OpenServerConection(up UserProxy) (*ServerConnection, error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 
-	c := grpcService.NewUsersClient(conn)
+	c := proto.NewUsersClient(conn)
 
 	return &ServerConnection{
 		client:  c,
@@ -197,7 +197,7 @@ func OpenServerConection(up UserProxy) (*ServerConnection, error) {
 }
 
 type ServerConnection struct {
-	client  grpcService.UsersClient
+	client  proto.UsersClient
 	context context.Context
 	dispose func()
 }

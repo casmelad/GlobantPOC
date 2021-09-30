@@ -7,11 +7,11 @@ import (
 	"os"
 
 	"github.com/caarlos0/env/v6"
-	grpcServiceImpl "github.com/casmelad/GlobantPOC/cmd/grpc_server/grpcservices"
-	grpcServices "github.com/casmelad/GlobantPOC/cmd/grpc_server/users"
+	grpcServiceImpl "github.com/casmelad/GlobantPOC/cmd/grpcService/users"
+	proto "github.com/casmelad/GlobantPOC/cmd/grpcService/users/proto"
 	memory "github.com/casmelad/GlobantPOC/pkg/repository/memory"
 	mysql "github.com/casmelad/GlobantPOC/pkg/repository/mysql"
-	"github.com/casmelad/GlobantPOC/pkg/users"
+	domain "github.com/casmelad/GlobantPOC/pkg/users"
 	"google.golang.org/grpc"
 )
 
@@ -30,15 +30,16 @@ func main() {
 	}
 
 	server := grpc.NewServer()
-	appService := users.NewUserService(getActiveRepository())
-	grpcServices.RegisterUsersServer(server, grpcServiceImpl.NewGrpcUserService(appService))
+	appService := domain.NewUserService(getActiveRepository())
+	grpcService := grpcServiceImpl.NewGrpcUserService(appService)
+	proto.RegisterUsersServer(server, grpcService)
 
 	if err := server.Serve(ls); err != nil {
 		log.Fatalf("failed to serve: %s", err)
 	}
 }
 
-func getActiveRepository() users.Repository {
+func getActiveRepository() domain.Repository {
 
 	envVar := os.Getenv("USERS_REPOSITORY")
 

@@ -1,4 +1,4 @@
-package web
+package users
 
 import (
 	"encoding/json"
@@ -7,13 +7,10 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-
-	users "github.com/casmelad/GlobantPOC/cmd/REST_server/application"
-	entities "github.com/casmelad/GlobantPOC/cmd/REST_server/entities"
 )
 
 type usersController struct {
-	dataSource *users.UserProxy
+	dataSource *UserProxy
 }
 
 func (u *usersController) GetAll(w http.ResponseWriter, r *http.Request) {
@@ -54,7 +51,7 @@ func (u *usersController) GetById(w http.ResponseWriter, r *http.Request) {
 
 func (u *usersController) Create(w http.ResponseWriter, r *http.Request) {
 
-	userToCreate := entities.User{}
+	userToCreate := User{}
 
 	decoder := json.NewDecoder(r.Body)
 
@@ -82,7 +79,7 @@ func (u *usersController) CreateMany(w http.ResponseWriter, r *http.Request) {
 		go func(index int) {
 			intId := strconv.Itoa(index)
 
-			_, err := u.dataSource.Create(entities.User{
+			_, err := u.dataSource.Create(User{
 				Email:    "user" + intId + "@gmail.com",
 				Name:     "test",
 				LastName: "test_last",
@@ -100,7 +97,7 @@ func (u *usersController) CreateMany(w http.ResponseWriter, r *http.Request) {
 
 func (u *usersController) Update(w http.ResponseWriter, r *http.Request) {
 
-	userToUpdate := entities.User{}
+	userToUpdate := User{}
 
 	decoder := json.NewDecoder(r.Body)
 
@@ -161,7 +158,7 @@ func (u *usersController) Delete(w http.ResponseWriter, r *http.Request) {
 func NewUserController() *usersController {
 
 	return &usersController{
-		dataSource: users.NewUserProxy(),
+		dataSource: NewUserProxy(),
 	}
 }
 

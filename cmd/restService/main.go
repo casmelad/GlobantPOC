@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/caarlos0/env/v6"
-	"github.com/casmelad/GlobantPOC/cmd/REST_server/web"
 	"github.com/gorilla/mux"
 	glog "google.golang.org/grpc/grpclog"
 )
@@ -31,7 +30,7 @@ func main() {
 
 	fmt.Println(cfg)
 
-	web.Startup(router)
+	Startup(router)
 
 	srv := &http.Server{
 		Handler: router,
