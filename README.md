@@ -1,5 +1,5 @@
 # Learning Go
-POC golang para practicar y entender conceptos desde lo mas basico
+POC golang to practice concepts and best practices related to the language
 
 TODO
 
