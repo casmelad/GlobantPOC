@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
+	mappers "github.com/casmelad/GlobantPOC/cmd/grpcService/users/mappers"
 	proto "github.com/casmelad/GlobantPOC/cmd/grpcService/users/proto"
-	mappers "github.com/casmelad/GlobantPOC/pkg/cmd/grpcService/users/mappers"
 	entities "github.com/casmelad/GlobantPOC/pkg/users"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

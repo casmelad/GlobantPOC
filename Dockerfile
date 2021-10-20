@@ -11,8 +11,8 @@ COPY . .
 # Using go get.
 RUN go mod download
 # Build the binary.
-RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o grpcservice ./cmd/grpc_server/.
-RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o restservice ./cmd/REST_server/.
+RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o grpcservice ./cmd/grpcService/.
+RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o restservice ./cmd/restService/.
 
 ############################
 # STEP 2 grpc service

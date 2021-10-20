@@ -3,7 +3,8 @@ services:
   grpc:
     container_name: grpcservicedev
     build:      
-      dockerfile: Dockerfile   
+      dockerfile: Dockerfile  
+      context: . 
       target: grpcserver
     environment:
       - GRPCSERVICE_PORT=9000      
@@ -20,6 +21,7 @@ services:
     container_name: restservicedev
     build:
       dockerfile: Dockerfile
+      context: . 
       target: restserver
     ports:
       - "8000:8000"

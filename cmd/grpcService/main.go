@@ -43,6 +43,8 @@ func getActiveRepository() domain.Repository {
 
 	envVar := os.Getenv("USERS_REPOSITORY")
 
+	fmt.Println(envVar)
+
 	if len(envVar) == 0 {
 		envVar = "mysql"
 	}
