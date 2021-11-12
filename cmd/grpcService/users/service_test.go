@@ -50,7 +50,7 @@ func (r *applicationServiceMock) Delete(ctx context.Context, id int) error {
 var emailAddress string = "test@gmail.com"
 var ctx context.Context = context.Background()
 var applicationService applicationServiceMock = applicationServiceMock{}
-var grpcService proto.UsersServer = NewGrpcUserService(&applicationService)
+var grpcService proto.UsersServer = NewGrpcUserServer(&applicationService)
 
 func Test_GetUser_ValidEmail_ReturnsUser(t *testing.T) {
 	//Arrange

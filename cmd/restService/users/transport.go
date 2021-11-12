@@ -33,25 +33,25 @@ func MakeHTTPHandler(s UserProxy, logger log.Logger) http.Handler {
 		httptransport.ServerErrorEncoder(encodeError),
 	}
 
-	r.Methods("POST").Path("/users/").Handler(httptransport.NewServer(
+	r.Methods(http.MethodPost).Path(PostUser).Handler(httptransport.NewServer(
 		e.PostUserEndpoint,
 		decodePostProfileRequest,
 		encodeResponse,
 		options...,
 	))
-	r.Methods("GET").Path("/users/{email}").Handler(httptransport.NewServer(
+	r.Methods(http.MethodGet).Path(GetUser).Handler(httptransport.NewServer(
 		e.GetUserEndpoint,
 		decodeGetUserRequest,
 		encodeResponse,
 		options...,
 	))
-	r.Methods("PUT").Path("/users/{email}").Handler(httptransport.NewServer(
+	r.Methods(http.MethodPut).Path(PutUser).Handler(httptransport.NewServer(
 		e.PutUserEndpoint,
 		decodePutProfileRequest,
 		encodeResponse,
 		options...,
 	))
-	r.Methods("DELETE").Path("/users/{id}").Handler(httptransport.NewServer(
+	r.Methods(http.MethodDelete).Path(DeleteUser).Handler(httptransport.NewServer(
 		e.DeleteUserEndpoint,
 		decodeDeleteProfileRequest,
 		encodeResponse,

@@ -2,44 +2,88 @@ package grpc
 
 import (
 	"context"
+	"errors"
+
+	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/tracing/zipkin"
+
+	"github.com/go-kit/kit/transport"
+	grpctransport "github.com/go-kit/kit/transport/grpc"
+	stdopentracing "github.com/opentracing/opentracing-go"
+	stdzipkin "github.com/openzipkin/zipkin-go"
 
 	mapper "github.com/casmelad/GlobantPOC/cmd/grpcService/users/mappers"
 	proto "github.com/casmelad/GlobantPOC/cmd/grpcService/users/proto"
-	entities "github.com/casmelad/GlobantPOC/pkg/users"
 )
 
-type GrpcService struct {
-	usersService entities.Service
+type grpcUserServer struct {
+	proto.UsersServer
+	getUser     grpctransport.Handler
+	create      grpctransport.Handler
+	getAllUsers grpctransport.Handler
+	update      grpctransport.Handler
+	delete      grpctransport.Handler
 }
 
-func NewGrpcUserService(us entities.Service) *GrpcService {
-	return &GrpcService{
-		usersService: us,
+func NewGrpcUserServer(endpoints grpcUserServerEndpoints, otTracer stdopentracing.Tracer, zipkinTracer *stdzipkin.Tracer, logger log.Logger) proto.UsersServer {
+
+	options := []grpctransport.ServerOption{
+		grpctransport.ServerErrorHandler(transport.NewLogErrorHandler(logger)),
 	}
+
+	if zipkinTracer != nil {
+		// Zipkin GRPC Server Trace can either be instantiated per gRPC method with a
+		// provided operation name or a global tracing service can be instantiated
+		// without an operation name and fed to each Go kit gRPC server as a
+		// ServerOption.
+		// In the latter case, the operation name will be the endpoint's grpc method
+		// path if used in combination with the Go kit gRPC Interceptor.
+		//
+		// In this example, we demonstrate a global Zipkin tracing service with
+		// Go kit gRPC Interceptor.
+		options = append(options, zipkin.GRPCServerTrace(zipkinTracer))
+	}
+
+	server := &grpcUserServer{
+
+		create:  grpctransport.NewServer(endpoints.CreateUserEndpoint, decodeCreateUserRequest, encodeCreateUserResponse, options...),
+		getUser: grpctransport.NewServer(endpoints.GetUserByEmailEndpoint, decodeGetUserRequest, encodeGetUserResponse, options...),
+	}
+
+	return server
 }
 
-func (u *GrpcService) GetUser(ctx context.Context, uid *proto.EmailAddress) (*proto.GetUserResponse, error) {
+func (u grpcUserServer) GetUser(ctx context.Context, uid *proto.EmailAddress) (*proto.GetUserResponse, error) {
 
-	usr, err := u.usersService.GetByEmail(ctx, uid.Value)
+	_, usr, err := u.getUser.ServeGRPC(ctx, uid)
+
+	if usr == nil {
+		usr = getUserResponse{}
+	}
+
+	usrResp := usr.(getUserResponse)
 
 	if err != nil {
 		return nil, err
 	}
+	pbResponse, errDecode := encodeGetUserResponse(ctx, usrResp)
 
-	userToReturn, err := mapper.ToGrpcUser(usr)
+	if pbResponse == nil {
+		pbResponse = proto.GetUserResponse{}
+	}
 
-	return &proto.GetUserResponse{User: &userToReturn}, err
+	return pbResponse.(*proto.GetUserResponse), errDecode
 }
 
-func (u *GrpcService) Create(ctx context.Context, user *proto.CreateUserRequest) (*proto.CreateUserResponse, error) {
+func (u grpcUserServer) Create(ctx context.Context, user *proto.CreateUserRequest) (*proto.CreateUserResponse, error) {
 
-	userToCreate, errMapping := mapper.ToDomainUser(*user.User)
+	_, errMapping := mapper.ToDomainUser(*user.User)
 
 	if errMapping != nil {
 		return nil, errMapping
 	}
 
-	newUserId, err := u.usersService.Create(ctx, userToCreate)
+	_, newUserId, err := u.create.ServeGRPC(ctx, user)
 
 	if err != nil {
 		if err.Error() == "user already exists" {
@@ -49,13 +93,13 @@ func (u *GrpcService) Create(ctx context.Context, user *proto.CreateUserRequest)
 		}
 	}
 
-	return &proto.CreateUserResponse{Code: proto.CodeResult_OK, UserId: int32(newUserId)}, nil
+	return &proto.CreateUserResponse{Code: proto.CodeResult_OK, UserId: int32(newUserId.(int))}, nil
 
 }
 
-func (u *GrpcService) GetAllUsers(ctx context.Context, v *proto.Filters) (*proto.GetAllUsersResponse, error) {
+func (u grpcUserServer) GetAllUsers(ctx context.Context, v *proto.Filters) (*proto.GetAllUsersResponse, error) {
 
-	users, err := u.usersService.GetAll(ctx)
+	/* users, err := u.usersService.GetAll(ctx)
 	response := []*proto.User{}
 
 	if err != nil {
@@ -71,19 +115,19 @@ func (u *GrpcService) GetAllUsers(ctx context.Context, v *proto.Filters) (*proto
 
 		response = append(response, &userMapped)
 	}
-
-	return &proto.GetAllUsersResponse{Users: response}, nil
+	*/
+	return &proto.GetAllUsersResponse{}, nil
 }
 
-func (u *GrpcService) Update(ctx context.Context, user *proto.UpdateUserRequest) (*proto.UpdateUserResponse, error) {
+func (u grpcUserServer) Update(ctx context.Context, user *proto.UpdateUserRequest) (*proto.UpdateUserResponse, error) {
 
-	userToUpdate, err := mapper.ToDomainUser(*user.User)
+	_, err := mapper.ToDomainUser(*user.User)
 
 	if err != nil {
 		return &proto.UpdateUserResponse{Code: proto.CodeResult_FAILED}, err
 	}
 
-	err_u := u.usersService.Update(ctx, userToUpdate)
+	err_u := errors.New("")
 
 	if err_u != nil {
 		errorMessage := err_u.Error()
@@ -100,9 +144,9 @@ func (u *GrpcService) Update(ctx context.Context, user *proto.UpdateUserRequest)
 	return &proto.UpdateUserResponse{Code: proto.CodeResult_OK}, nil
 }
 
-func (u *GrpcService) Delete(ctx context.Context, userId *proto.Id) (*proto.DeleteUserResponse, error) {
+func (u grpcUserServer) Delete(ctx context.Context, userId *proto.Id) (*proto.DeleteUserResponse, error) {
 
-	err := u.usersService.Delete(ctx, int(userId.Value))
+	err := errors.New("") // u.usersService.Delete(ctx, int(userId.Value))
 
 	if err != nil {
 		errorMessage := err.Error()
@@ -117,4 +161,40 @@ func (u *GrpcService) Delete(ctx context.Context, userId *proto.Id) (*proto.Dele
 	}
 
 	return &proto.DeleteUserResponse{Code: proto.CodeResult_OK}, nil
+}
+
+// decodeGRPCSumRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC sum request to a user-domain sum request. Primarily useful in a server.
+func decodeCreateUserRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	reqData, validCast := grpcReq.(*proto.CreateUserRequest)
+	if !validCast {
+		return nil, errors.New("invalid input data")
+	}
+	return postUserRequest{User: *reqData.User}, nil
+}
+
+func encodeCreateUserResponse(_ context.Context, resp interface{}) (interface{}, error) {
+	reqData, validCast := resp.(postUserResponse)
+	if !validCast {
+		return nil, errors.New("invalid input data")
+	}
+	return &proto.CreateUserResponse{UserId: int32(reqData.Id), Code: proto.CodeResult_FAILED}, nil
+}
+
+// decodeGRPCSumRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC sum request to a user-domain sum request. Primarily useful in a server.
+func decodeGetUserRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	reqData, validCast := grpcReq.(*proto.EmailAddress)
+	if !validCast {
+		return nil, errors.New("invalid input data")
+	}
+	return getUserRequest{Value: reqData.Value}, nil
+}
+
+func encodeGetUserResponse(_ context.Context, resp interface{}) (interface{}, error) {
+	reqData, validCast := resp.(getUserResponse)
+	if !validCast {
+		return nil, errors.New("invalid input data to encode")
+	}
+	return &proto.GetUserResponse{User: &proto.User{Id: int32(reqData.User.ID), Email: reqData.User.Email, Name: reqData.User.Name, LastName: reqData.User.LastName}}, nil
 }

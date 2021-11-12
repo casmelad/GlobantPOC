@@ -45,6 +45,9 @@ func main() {
 		h = users.MakeHTTPHandler(users.UserProxy{}, log.With(logger, "component", "HTTP"))
 	}
 
+	handler := users.UUIDContextMiddleware(h)
+	handler = users.AuthenticationMiddleware(handler)
+
 	errs := make(chan error)
 	go func() {
 		c := make(chan os.Signal)
@@ -54,7 +57,7 @@ func main() {
 
 	go func() {
 		logger.Log("transport", "HTTP", "addr", *httpAddr)
-		errs <- http.ListenAndServe(*httpAddr, h)
+		errs <- http.ListenAndServe(*httpAddr, handler)
 	}()
 
 	logger.Log("exit", <-errs)

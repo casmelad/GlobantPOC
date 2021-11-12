@@ -30,9 +30,9 @@ func NewUserProxy() *UserProxy {
 	}
 }
 
-func (up UserProxy) GetAll() ([]User, error) {
+func (up UserProxy) GetAll(ctx context.Context) ([]User, error) {
 
-	serverCon, err := OpenServerConection(up)
+	serverCon, err := OpenServerConection(ctx)
 
 	if err != nil {
 		log.Fatalf(err.Error())
@@ -60,9 +60,9 @@ func (up UserProxy) GetAll() ([]User, error) {
 	return response, errorFromCall
 }
 
-func (up UserProxy) Create(u User) (User, error) {
+func (up UserProxy) Create(ctx context.Context, u User) (User, error) {
 
-	serverCon, err := OpenServerConection(up)
+	serverCon, err := OpenServerConection(ctx)
 
 	if err != nil {
 		log.Fatalf("did not connect to server: %s", err)
@@ -87,9 +87,9 @@ func (up UserProxy) Create(u User) (User, error) {
 	return u, errorFromCall
 }
 
-func (up UserProxy) Update(u User) (User, error) {
+func (up UserProxy) Update(ctx context.Context, u User) (User, error) {
 
-	serverCon, err := OpenServerConection(up)
+	serverCon, err := OpenServerConection(ctx)
 
 	if err != nil {
 		log.Fatalf("did not connect to server: %s", err)
@@ -113,9 +113,9 @@ func (up UserProxy) Update(u User) (User, error) {
 	return u, nil
 }
 
-func (up UserProxy) Delete(id int) (bool, error) {
+func (up UserProxy) Delete(ctx context.Context, id int) (bool, error) {
 
-	serverCon, err := OpenServerConection(up)
+	serverCon, err := OpenServerConection(ctx)
 
 	if err != nil {
 		log.Fatalf("did not connect to server: %s", err)
@@ -137,9 +137,9 @@ func (up UserProxy) Delete(id int) (bool, error) {
 	return false, errorFromCall
 }
 
-func (up UserProxy) GetByEmail(email string) (User, error) {
+func (up UserProxy) GetByEmail(ctx context.Context, email string) (User, error) {
 
-	serverCon, err := OpenServerConection(up)
+	serverCon, err := OpenServerConection(ctx)
 
 	if err != nil {
 		log.Fatalf("did not connect to server: %s", err)
@@ -166,7 +166,7 @@ func (up UserProxy) GetByEmail(email string) (User, error) {
 	return response, nil
 }
 
-func OpenServerConection(up UserProxy) (*ServerConnection, error) {
+func OpenServerConection(ctx context.Context) (*ServerConnection, error) {
 
 	cfg := config{}
 
@@ -181,13 +181,15 @@ func OpenServerConection(up UserProxy) (*ServerConnection, error) {
 		return nil, err //unreached?
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctxTO, cancel := context.WithTimeout(ctx, 10*time.Second)
+
+	fmt.Println(ctxTO.Value("uuid"))
 
 	c := proto.NewUsersClient(conn)
 
 	return &ServerConnection{
 		client:  c,
-		context: ctx,
+		context: ctxTO,
 		dispose: func() {
 			cancel()
 			conn.Close()

@@ -2,6 +2,7 @@ package users
 
 import (
 	"context"
+	"errors"
 
 	"github.com/go-kit/kit/endpoint"
 )
@@ -33,18 +34,29 @@ func (e Endpoints) PostUser(ctx context.Context, p User) error {
 	if err != nil {
 		return err
 	}
-	resp := response.(postUserResponse)
+	resp, validCast := response.(postUserResponse)
+
+	if !validCast {
+		return err
+	}
+
 	return resp.Err
 }
 
 // GetUser implements UsersProxy. Primarily useful in a client.
 func (e Endpoints) GetUser(ctx context.Context, email string) (User, error) {
+
 	request := getUserRequest{Email: email}
 	response, err := e.GetUserEndpoint(ctx, request)
 	if err != nil {
 		return User{}, err
 	}
-	resp := response.(getUserResponse)
+	resp, validCast := response.(getUserResponse)
+
+	if !validCast {
+		return User{}, errors.New("incompatible endpoint response type and internal handler response type")
+	}
+
 	return resp.User, resp.Err
 }
 
@@ -55,18 +67,29 @@ func (e Endpoints) PutUser(ctx context.Context, id string, p User) error {
 	if err != nil {
 		return err
 	}
-	resp := response.(putUserResponse)
+	resp, validCast := response.(putUserResponse)
+
+	if !validCast {
+		return errors.New("incompatible endpoint response type and internal handler response type")
+	}
+
 	return resp.Err
 }
 
 // DeleteUser implements UsersProxy. Primarily useful in a client.
 func (e Endpoints) DeleteUser(ctx context.Context, id int) error {
+
 	request := deleteUserRequest{UserID: id}
 	response, err := e.DeleteUserEndpoint(ctx, request)
 	if err != nil {
 		return err
 	}
-	resp := response.(deleteUserResponse)
+	resp, validCast := response.(deleteUserResponse)
+
+	if !validCast {
+		return errors.New("incompatible endpoint response type and internal handler response type")
+	}
+
 	return resp.Err
 }
 
@@ -74,8 +97,13 @@ func (e Endpoints) DeleteUser(ctx context.Context, id int) error {
 // Primarily useful in a server.
 func MakePostUserEndpoint(s UserProxy) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		req := request.(postUserRequest)
-		usr, e := s.Create(req.User)
+
+		reqData, validCast := request.(postUserRequest)
+		if !validCast {
+			return nil, errors.New("invalid input data")
+		}
+
+		usr, e := s.Create(ctx, reqData.User)
 		return postUserResponse{User: usr, Err: e}, nil
 	}
 }
@@ -84,8 +112,12 @@ func MakePostUserEndpoint(s UserProxy) endpoint.Endpoint {
 // Primarily useful in a server.
 func MakeGetUserEndpoint(s UserProxy) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		req := request.(getUserRequest)
-		p, e := s.GetByEmail(req.Email)
+
+		reqData, validCast := request.(getUserRequest)
+		if !validCast {
+			return nil, errors.New("invalid input data")
+		}
+		p, e := s.GetByEmail(ctx, reqData.Email) //pasar el context hasta el grpc
 		return getUserResponse{User: p, Err: e}, nil
 	}
 }
@@ -94,8 +126,11 @@ func MakeGetUserEndpoint(s UserProxy) endpoint.Endpoint {
 // Primarily useful in a server.
 func MakePutUserEndpoint(s UserProxy) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		req := request.(putUserRequest)
-		_, e := s.Update(req.User)
+		reqData, validCast := request.(putUserRequest)
+		if !validCast {
+			return nil, errors.New("invalid input data")
+		}
+		_, e := s.Update(ctx, reqData.User)
 		return putUserResponse{Err: e}, nil
 	}
 }
@@ -104,42 +139,11 @@ func MakePutUserEndpoint(s UserProxy) endpoint.Endpoint {
 // Primarily useful in a server.
 func MakeDeleteUserEndpoint(s UserProxy) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		req := request.(deleteUserRequest)
-		_, e := s.Delete(req.UserID)
+		reqData, validCast := request.(deleteUserRequest)
+		if !validCast {
+			return nil, errors.New("invalid input data")
+		}
+		_, e := s.Delete(ctx, reqData.UserID)
 		return deleteUserResponse{Err: e}, nil
 	}
-}
-
-type postUserRequest struct {
-	User User
-}
-
-type postUserResponse struct {
-	Err  error `json:"err,omitempty"`
-	User User  `json:"user,omitempty"`
-}
-
-type putUserRequest struct {
-	User User
-}
-
-type putUserResponse struct {
-	Err error `json:"err,omitempty"`
-}
-
-type deleteUserRequest struct {
-	UserID int
-}
-
-type deleteUserResponse struct {
-	Err error `json:"err,omitempty"`
-}
-
-type getUserRequest struct {
-	Email string
-}
-
-type getUserResponse struct {
-	Err  error `json:"err,omitempty"`
-	User User  `json:"user,omitempty"`
 }
