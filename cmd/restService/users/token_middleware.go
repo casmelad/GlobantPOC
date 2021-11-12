@@ -31,6 +31,7 @@ var hmacSampleSecret []byte
 func validateToken(stringToken string) bool {
 
 	pubKey, err := ioutil.ReadFile("/home/adrian.castan/cert/id_rsa.pub")
+	
 	if err != nil {
 		log.Fatalln(err)
 	}
