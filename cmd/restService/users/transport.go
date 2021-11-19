@@ -45,6 +45,12 @@ func MakeHTTPHandler(s UserProxy, logger log.Logger) http.Handler {
 		encodeResponse,
 		options...,
 	))
+	r.Methods(http.MethodGet).Path(UsersBaseUri).Handler(httptransport.NewServer(
+		e.GetAllUsersEndpoint,
+		decodeGetAllUsersRequest,
+		encodeResponse,
+		options...,
+	))
 	r.Methods(http.MethodPut).Path(PutUser).Handler(httptransport.NewServer(
 		e.PutUserEndpoint,
 		decodePutProfileRequest,
@@ -70,6 +76,11 @@ func decodeGetUserRequest(_ context.Context, r *http.Request) (request interface
 		return nil, ErrBadRouting
 	}
 	return getUserRequest{Email: email}, nil
+}
+
+func decodeGetAllUsersRequest(_ context.Context, r *http.Request) (request interface{}, err error) {
+	
+	return getAllUsersRequest{}, nil
 }
 
 func decodePostProfileRequest(_ context.Context, r *http.Request) (request interface{}, err error) {

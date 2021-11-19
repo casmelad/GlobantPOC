@@ -21,7 +21,7 @@ func MakeServerEndpoints(s UserProxy) Endpoints {
 		PostUserEndpoint:     MakePostUserEndpoint(s),
 		PostManyUserEndpoint: MakePostUserEndpoint(s),
 		GetUserEndpoint:      MakeGetUserEndpoint(s),
-		GetAllUsersEndpoint:  MakeGetUserEndpoint(s),
+		GetAllUsersEndpoint:  MakeGetAllUsersEndpoint(s),
 		PutUserEndpoint:      MakePutUserEndpoint(s),
 		DeleteUserEndpoint:   MakeDeleteUserEndpoint(s),
 	}
@@ -119,6 +119,20 @@ func MakeGetUserEndpoint(s UserProxy) endpoint.Endpoint {
 		}
 		p, e := s.GetByEmail(ctx, reqData.Email) //pasar el context hasta el grpc
 		return getUserResponse{User: p, Err: e}, nil
+	}
+}
+
+// MakeGetUserEndpoint returns an endpoint via the passed service.
+// Primarily useful in a server.
+func MakeGetAllUsersEndpoint(s UserProxy) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+
+		_, validCast := request.(getAllUsersRequest)
+		if !validCast {
+			return nil, errors.New("invalid input data")
+		}
+		p, e := s.GetAll(ctx) //pasar el context hasta el grpc
+		return getAllUsersResponse{Users: p, Err: e}, nil
 	}
 }
 

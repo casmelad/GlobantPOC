@@ -15,3 +15,6 @@ type deleteUserRequest struct {
 type getUserRequest struct {
 	Email string
 }
+
+type getAllUsersRequest struct {
+}

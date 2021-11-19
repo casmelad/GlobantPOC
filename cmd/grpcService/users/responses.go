@@ -1,12 +1,22 @@
 package grpc
 
-import "github.com/casmelad/GlobantPOC/pkg/users"
-
 type postUserResponse struct {
-	Id  int
-	Err error
+	Error error
+	Id    int
 }
 
 type getUserResponse struct {
-	User users.User
+	User
+}
+
+type getAllUsersResponse struct {
+	Users []User
+}
+
+type updateUserResponse struct {
+	Error error
+}
+
+type deleteUserResponse struct {
+	Error error
 }

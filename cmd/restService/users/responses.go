@@ -17,3 +17,8 @@ type getUserResponse struct {
 	Err  error `json:"err,omitempty"`
 	User User  `json:"user,omitempty"`
 }
+
+type getAllUsersResponse struct {
+	Err  error `json:"err,omitempty"`
+	Users []User  `json:"users,omitempty"`
+}
