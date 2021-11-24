@@ -11,6 +11,9 @@ services:
       - MYSQL_HOST=mysql
       - MYSQL_PORT=:3306    
       - USERS_REPOSITORY=mysql
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=BulkD3v_mysql
+      - MYSQL_DEFAULTDB= Users
     expose:
       - "9000"  
     networks:
@@ -38,8 +41,8 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=BulkD3v_mysql
       - MYSQL_DATABASE=Users
-    expose:
-      - "3306"
+    ports:
+      - "3306:3306"
     volumes:
       - ./seeds/migrations-schema.sql:/docker-entrypoint-initdb.d/init.sql
     tty:

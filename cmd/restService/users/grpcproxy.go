@@ -15,6 +15,14 @@ import (
 	glog "google.golang.org/grpc/grpclog"
 )
 
+type GrpcUsersProxy interface {
+	GetAll(context.Context) ([]User, error)
+	Create(context.Context, User) (User, error)
+	Update(context.Context, User) (User, error)
+	Delete(context.Context, int) (bool, error)
+	GetByEmail(context.Context, string) (User, error)
+}
+
 type UserProxy struct {
 	grpcLog glog.LoggerV2
 }
@@ -79,6 +87,14 @@ func (up UserProxy) Create(ctx context.Context, u User) (User, error) {
 
 	result, errorFromCall := c.Create(serverCon.context, &proto.CreateUserRequest{User: externalUser})
 
+	if result.Code == proto.CodeResult_FAILED {
+		return User{}, ErrUserAlreadyExists
+	}
+
+	if result.Code == proto.CodeResult_INVALIDINPUT {
+		return User{}, ErrInvalidInput
+	}
+
 	if errorFromCall != nil {
 		return User{}, errorFromCall
 	}
@@ -104,7 +120,19 @@ func (up UserProxy) Update(ctx context.Context, u User) (User, error) {
 		LastName: u.LastName,
 	}
 
-	_, errorFromCall := c.Update(serverCon.context, &proto.UpdateUserRequest{User: &externalUser})
+	result, errorFromCall := c.Update(serverCon.context, &proto.UpdateUserRequest{User: &externalUser})
+
+	if result.Code == proto.CodeResult_FAILED {
+		return User{}, ErrUserAlreadyExists
+	}
+
+	if result.Code == proto.CodeResult_INVALIDINPUT {
+		return User{}, ErrInvalidInput
+	}
+
+	if result.Code == proto.CodeResult_NOTFOUND {
+		return User{}, ErrNotFound
+	}
 
 	if errorFromCall != nil {
 		return User{}, errorFromCall
@@ -121,14 +149,20 @@ func (up UserProxy) Delete(ctx context.Context, id int) (bool, error) {
 		log.Fatalf("did not connect to server: %s", err)
 	}
 
-	fmt.Println(id)
-
 	defer serverCon.dispose()
 	c := serverCon.client
 	externalUserId := &proto.Id{
 		Value: int32(id),
 	}
-	_, errorFromCall := c.Delete(serverCon.context, externalUserId)
+	result, errorFromCall := c.Delete(serverCon.context, externalUserId)
+
+	if result.Code == proto.CodeResult_FAILED {
+		return false, ErrInternalFailure
+	}
+
+	if result.Code == proto.CodeResult_NOTFOUND {
+		return false, ErrNotFound
+	}
 
 	if errorFromCall != nil {
 		return true, errorFromCall
@@ -148,6 +182,10 @@ func (up UserProxy) GetByEmail(ctx context.Context, email string) (User, error) 
 	defer serverCon.dispose()
 	c := serverCon.client
 	result, errorFromCall := c.GetUser(serverCon.context, &proto.EmailAddress{Value: email})
+
+	if result.User.Id == 0 {
+		return User{}, ErrNotFound
+	}
 
 	if errorFromCall != nil {
 		fmt.Println("server call did not work:", errorFromCall)
@@ -178,12 +216,10 @@ func OpenServerConection(ctx context.Context) (*ServerConnection, error) {
 
 	if err != nil {
 		log.Fatalf("did not connect to server: %s", err)
-		return nil, err //unreached?
+		return nil, err
 	}
 
 	ctxTO, cancel := context.WithTimeout(ctx, 10*time.Second)
-
-	fmt.Println(ctxTO.Value("uuid"))
 
 	c := proto.NewUsersClient(conn)
 

@@ -110,14 +110,11 @@ func decodeCreateUserRequest(ctx context.Context, grpcReq interface{}) (interfac
 
 func encodeCreateUserResponse(ctx context.Context, resp interface{}) (interface{}, error) {
 
-	fmt.Println("encode before cast", resp)
 	respData, validCast := resp.(postUserResponse)
-	fmt.Println("Cast", respData, validCast)
+
 	if !validCast {
 		return nil, errors.New("invalid input data")
 	}
-
-	fmt.Println("encode etetetet", respData)
 
 	if respData.Error != nil {
 		if respData.Error.Error() == "user already exists" {

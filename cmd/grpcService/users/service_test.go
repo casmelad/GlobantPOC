@@ -3,11 +3,15 @@ package grpc
 import (
 	"context"
 	"errors"
+	"os"
 	"testing"
 
 	mappers "github.com/casmelad/GlobantPOC/cmd/grpcService/users/mappers"
 	proto "github.com/casmelad/GlobantPOC/cmd/grpcService/users/proto"
 	entities "github.com/casmelad/GlobantPOC/pkg/users"
+	"github.com/go-kit/log"
+	stdopentracing "github.com/opentracing/opentracing-go"
+	"github.com/openzipkin/zipkin-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -22,27 +26,27 @@ type applicationServiceMock struct {
 	mock.Mock
 }
 
-func (r *applicationServiceMock) Create(ctx context.Context, u entities.User) (int, error) {
+func (r applicationServiceMock) Create(ctx context.Context, u entities.User) (int, error) {
 	args := r.Called(ctx, u)
 	return args.Int(0), args.Error(1)
 }
 
-func (r *applicationServiceMock) GetByEmail(ctx context.Context, email string) (entities.User, error) {
+func (r applicationServiceMock) GetByEmail(ctx context.Context, email string) (entities.User, error) {
 	args := r.Called(ctx, email)
 	return args.Get(0).(entities.User), args.Error(1)
 }
 
-func (r *applicationServiceMock) GetAll(ctx context.Context) ([]entities.User, error) {
+func (r applicationServiceMock) GetAll(ctx context.Context) ([]entities.User, error) {
 	args := r.Called(ctx)
 	return args.Get(0).([]entities.User), args.Error(1)
 }
 
-func (r *applicationServiceMock) Update(ctx context.Context, u entities.User) error {
+func (r applicationServiceMock) Update(ctx context.Context, u entities.User) error {
 	args := r.Called(ctx, u)
 	return args.Error(0)
 }
 
-func (r *applicationServiceMock) Delete(ctx context.Context, id int) error {
+func (r applicationServiceMock) Delete(ctx context.Context, id int) error {
 	args := r.Called(ctx, id)
 	return args.Error(0)
 }
@@ -50,7 +54,15 @@ func (r *applicationServiceMock) Delete(ctx context.Context, id int) error {
 var emailAddress string = "test@gmail.com"
 var ctx context.Context = context.Background()
 var applicationService applicationServiceMock = applicationServiceMock{}
-var grpcService proto.UsersServer = NewGrpcUserServer(&applicationService)
+var logger log.Logger = log.NewLogfmtLogger(os.Stderr)
+
+var zipkinTracer *zipkin.Tracer
+
+// Determine which OpenTracing tracer to use. We'll pass the tracer to all the
+// components that use it, as a dependency.
+var tracer stdopentracing.Tracer
+var endpoints = NewGrpcUsersServer(applicationService)
+var grpcService proto.UsersServer = NewGrpcUserServer(*endpoints, tracer, zipkinTracer, logger)
 
 func Test_GetUser_ValidEmail_ReturnsUser(t *testing.T) {
 	//Arrange

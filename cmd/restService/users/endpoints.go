@@ -3,6 +3,7 @@ package users
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/go-kit/kit/endpoint"
 )
@@ -16,7 +17,7 @@ type Endpoints struct {
 	DeleteUserEndpoint   endpoint.Endpoint
 }
 
-func MakeServerEndpoints(s UserProxy) Endpoints {
+func MakeServerEndpoints(s GrpcUsersProxy) Endpoints {
 	return Endpoints{
 		PostUserEndpoint:     MakePostUserEndpoint(s),
 		PostManyUserEndpoint: MakePostUserEndpoint(s),
@@ -27,75 +28,9 @@ func MakeServerEndpoints(s UserProxy) Endpoints {
 	}
 }
 
-// PostUser implements UsersProxy. Primarily useful in a client.
-func (e Endpoints) PostUser(ctx context.Context, p User) error {
-	request := postUserRequest{User: p}
-	response, err := e.PostUserEndpoint(ctx, request)
-	if err != nil {
-		return err
-	}
-	resp, validCast := response.(postUserResponse)
-
-	if !validCast {
-		return err
-	}
-
-	return resp.Err
-}
-
-// GetUser implements UsersProxy. Primarily useful in a client.
-func (e Endpoints) GetUser(ctx context.Context, email string) (User, error) {
-
-	request := getUserRequest{Email: email}
-	response, err := e.GetUserEndpoint(ctx, request)
-	if err != nil {
-		return User{}, err
-	}
-	resp, validCast := response.(getUserResponse)
-
-	if !validCast {
-		return User{}, errors.New("incompatible endpoint response type and internal handler response type")
-	}
-
-	return resp.User, resp.Err
-}
-
-// PutUser implements UsersProxy. Primarily useful in a client.
-func (e Endpoints) PutUser(ctx context.Context, id string, p User) error {
-	request := putUserRequest{User: p}
-	response, err := e.PutUserEndpoint(ctx, request)
-	if err != nil {
-		return err
-	}
-	resp, validCast := response.(putUserResponse)
-
-	if !validCast {
-		return errors.New("incompatible endpoint response type and internal handler response type")
-	}
-
-	return resp.Err
-}
-
-// DeleteUser implements UsersProxy. Primarily useful in a client.
-func (e Endpoints) DeleteUser(ctx context.Context, id int) error {
-
-	request := deleteUserRequest{UserID: id}
-	response, err := e.DeleteUserEndpoint(ctx, request)
-	if err != nil {
-		return err
-	}
-	resp, validCast := response.(deleteUserResponse)
-
-	if !validCast {
-		return errors.New("incompatible endpoint response type and internal handler response type")
-	}
-
-	return resp.Err
-}
-
 // MakePostUserEndpoint returns an endpoint via the passed service.
 // Primarily useful in a server.
-func MakePostUserEndpoint(s UserProxy) endpoint.Endpoint {
+func MakePostUserEndpoint(s GrpcUsersProxy) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 
 		reqData, validCast := request.(postUserRequest)
@@ -104,13 +39,18 @@ func MakePostUserEndpoint(s UserProxy) endpoint.Endpoint {
 		}
 
 		usr, e := s.Create(ctx, reqData.User)
-		return postUserResponse{User: usr, Err: e}, nil
+
+		if e != nil {
+			return WrapError(e), nil
+		}
+
+		return postUserResponse{Href: fmt.Sprintf("%s%s", UsersBaseUri, usr.Email), Err: e}, nil
 	}
 }
 
 // MakeGetUserEndpoint returns an endpoint via the passed service.
 // Primarily useful in a server.
-func MakeGetUserEndpoint(s UserProxy) endpoint.Endpoint {
+func MakeGetUserEndpoint(s GrpcUsersProxy) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 
 		reqData, validCast := request.(getUserRequest)
@@ -118,13 +58,18 @@ func MakeGetUserEndpoint(s UserProxy) endpoint.Endpoint {
 			return nil, errors.New("invalid input data")
 		}
 		p, e := s.GetByEmail(ctx, reqData.Email) //pasar el context hasta el grpc
+
+		if e != nil {
+			return WrapError(e), nil
+		}
+
 		return getUserResponse{User: p, Err: e}, nil
 	}
 }
 
 // MakeGetUserEndpoint returns an endpoint via the passed service.
 // Primarily useful in a server.
-func MakeGetAllUsersEndpoint(s UserProxy) endpoint.Endpoint {
+func MakeGetAllUsersEndpoint(s GrpcUsersProxy) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 
 		_, validCast := request.(getAllUsersRequest)
@@ -132,32 +77,47 @@ func MakeGetAllUsersEndpoint(s UserProxy) endpoint.Endpoint {
 			return nil, errors.New("invalid input data")
 		}
 		p, e := s.GetAll(ctx) //pasar el context hasta el grpc
+
+		if e != nil {
+			return WrapError(e), nil
+		}
+
 		return getAllUsersResponse{Users: p, Err: e}, nil
 	}
 }
 
 // MakePutUserEndpoint returns an endpoint via the passed service.
 // Primarily useful in a server.
-func MakePutUserEndpoint(s UserProxy) endpoint.Endpoint {
+func MakePutUserEndpoint(s GrpcUsersProxy) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		reqData, validCast := request.(putUserRequest)
 		if !validCast {
 			return nil, errors.New("invalid input data")
 		}
 		_, e := s.Update(ctx, reqData.User)
+
+		if e != nil {
+			return WrapError(e), nil
+		}
+
 		return putUserResponse{Err: e}, nil
 	}
 }
 
 // MakeDeleteUserEndpoint returns an endpoint via the passed service.
 // Primarily useful in a server.
-func MakeDeleteUserEndpoint(s UserProxy) endpoint.Endpoint {
+func MakeDeleteUserEndpoint(s GrpcUsersProxy) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		reqData, validCast := request.(deleteUserRequest)
 		if !validCast {
 			return nil, errors.New("invalid input data")
 		}
 		_, e := s.Delete(ctx, reqData.UserID)
+
+		if e != nil {
+			return WrapError(e), nil
+		}
+
 		return deleteUserResponse{Err: e}, nil
 	}
 }

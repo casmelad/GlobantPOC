@@ -1,8 +1,8 @@
 package users
 
 type postUserResponse struct {
-	Err  error `json:"err,omitempty"`
-	User User  `json:"user,omitempty"`
+	Err  error  `json:"err,omitempty"`
+	Href string `json:"href,omitempty"`
 }
 
 type putUserResponse struct {
@@ -19,6 +19,6 @@ type getUserResponse struct {
 }
 
 type getAllUsersResponse struct {
-	Err  error `json:"err,omitempty"`
-	Users []User  `json:"users,omitempty"`
+	Err   error  `json:"err,omitempty"`
+	Users []User `json:"users,omitempty"`
 }
