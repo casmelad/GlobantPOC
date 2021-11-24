@@ -164,7 +164,7 @@ func (r *MySQLRepository) Update(ctx context.Context, usr users.User) error {
 	}
 
 	if rows, err := result.RowsAffected(); rows == 0 || err != nil {
-		return errors.New("no records were updated " + err.Error())
+		return errors.New("no records were updated ")
 	}
 
 	return nil

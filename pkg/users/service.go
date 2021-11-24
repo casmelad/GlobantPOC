@@ -106,6 +106,8 @@ func (us *UserService) Update(ctx context.Context, usr User) error {
 		return errors.New("user not found")
 	}
 
+	usr.ID = usrToUpdate.ID
+
 	if err := us.repository.Update(ctx, usr); err != nil {
 		return errors.New("cannot update the user")
 	}
