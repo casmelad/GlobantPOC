@@ -1,0 +1,55 @@
+version: "3.9"
+services:
+  grpc:
+    container_name: grpcservicedev
+    build:      
+      dockerfile: Dockerfile  
+      context: . 
+      target: grpcserver
+    environment:
+      - GRPCSERVICE_PORT=9000      
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=:3306    
+      - USERS_REPOSITORY=mysql
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=BulkD3v_mysql
+      - MYSQL_DEFAULTDB= Users
+    expose:
+      - "9000"  
+    networks:
+      - poc-network
+    depends_on:
+      - mysql
+  rest:
+    container_name: restservicedev
+    build:
+      dockerfile: Dockerfile
+      context: . 
+      target: restserver
+    ports:
+      - "8000:8000"
+    environment:
+      - GRPCSERVICE_HOST=grpc
+      - GRPCSERVICE_PORT=9000
+    networks:
+      - poc-network
+    depends_on:
+      - grpc
+  mysql:
+    container_name: mysqlserver
+    image: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=BulkD3v_mysql
+      - MYSQL_DATABASE=Users
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./seeds/migrations-schema.sql:/docker-entrypoint-initdb.d/init.sql
+    tty:
+      true
+    networks:
+      - poc-network
+
+networks:
+  poc-network: {}
+    

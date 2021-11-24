@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package users;
+
+option go_package="./users";
+
+message User{
+    //The user id to update
+    int32 id = 1 [json_name = "id"];     
+    //The user email
+    string email=3 [json_name = "email"];
+    //The user name
+    string name =5 [json_name = "name"];
+    //The user last name
+    string last_name = 7 [json_name = "last_name"];
+}
+
+message CreateUserRequest{
+   User user = 1 [json_name = "user"] ;
+}
+
+message UpdateUserRequest{
+    User user = 1 [json_name = "user"] ;
+}
+
+message Filters{}
+
+message Id{
+    int32 value = 1 [json_name = "value"];
+}
+
+message EmailAddress{
+ string Value=1 [json_name = "value"];
+}
+
+message CreateUserResponse{
+    
+    //The status code of the response
+    CodeResult code=1;
+    //The user created
+    int32 user_id = 3 [json_name = "user_id"] ;
+}
+
+message UpdateUserResponse{   
+    //The status code of the response
+    CodeResult code=1;
+}
+
+message GetAllUsersResponse{
+    repeated User users =1 [json_name = "users"];
+}
+
+message GetUserResponse{
+    User user =1 [json_name = "user"];
+}
+
+message DeleteUserResponse{   
+    //The status code of the response
+    CodeResult code=1 [json_name = "code"];
+}
+
+enum CodeResult {
+    UNKNOW = 0;
+    OK=1;
+    NOTFOUND=3;
+    FAILED = 5;
+    INVALIDINPUT = 7;
+}
+
+
+service Users{ //UsersService
+    //Get a user by the email
+    rpc GetUser(EmailAddress) returns (GetUserResponse){}
+
+    //Creates a nw user record
+    rpc Create(CreateUserRequest) returns (CreateUserResponse){}
+
+    //Gets all users
+    rpc GetAllUsers(Filters) returns (GetAllUsersResponse){}
+
+    //Updates the user information
+    rpc Update(UpdateUserRequest) returns (UpdateUserResponse){}
+
+    //Deletes a user
+    rpc Delete(Id) returns (DeleteUserResponse){}
+}
+
